@@ -10,7 +10,7 @@ import (
 type CommandUsecase interface {
 	// UpdateProfile(ctx context.Context, payload *models.UpdatedUser) utils.Result
 	Register(ctx context.Context, payload *models.Register) utils.Result
-	// Login(ctx context.Context, payload *models.LoginRequest) utils.Result
+	Login(ctx context.Context, payload *models.LoginRequest) utils.Result
 	// Logout(ctx context.Context, payload *token.Claim) utils.Result
 	// RefreshToken(ctx context.Context, payload *models.RefreshTokenRequest) utils.Result
 	// ChangePassword(ctx context.Context, payload *models.ChangePassword) utils.Result

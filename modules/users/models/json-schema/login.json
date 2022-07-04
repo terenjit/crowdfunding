@@ -1,0 +1,21 @@
+{
+    "$id": "login",
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "title": "JSON Schema for login payload",
+    "type": "object",
+    "properties": {
+        "email": {
+            "type": "string",
+            "oneOf": [
+                { "enum": [ "" ] },
+                { "format": "email" }
+            ]
+        },
+        "password": {
+            "type": "string",
+            "minLength": 8
+        }
+    },
+    "required": ["email", "password" ],
+    "additionalProperties": false
+}

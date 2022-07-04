@@ -3,21 +3,23 @@ package models
 import "time"
 
 type User struct {
-	ID             string `json:"id" gorm:"primaryKey;autoIncrement:true"`
-	Name           string `json:"name"`
-	Occupation     string `json:"occupation"`
-	Email          string `json:"email"`
-	Password       string `json:"password"`
-	AvatarFileName string `json:"avatar"`
-	Role           string `json:"role"`
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID             string    `json:"id" gorm:"primaryKey;autoIncrement:true"`
+	Name           string    `json:"name"`
+	Username       string    `json:"username"`
+	Occupation     string    `json:"occupation"`
+	Email          string    `json:"email"`
+	Password       string    `json:"password"`
+	AvatarFileName string    `json:"avatar"`
+	Role           string    `json:"role"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 //userDataFormat
 type UserFormatter struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`
+	Username   string `json:"username"`
 	Occupation string `json:"occupation"`
 	Email      string `json:"email" `
 	Token      string `json:"token"`
@@ -27,7 +29,14 @@ type UserFormatter struct {
 type Register struct {
 	ID         string `json:"id"`
 	Name       string `json:"name" `
+	Username   string `json:"username"`
 	Occupation string `json:"occupation" `
 	Email      string `json:"email" `
 	Password   string `json:"password" `
+}
+
+//LoginRequest
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }

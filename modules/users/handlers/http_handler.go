@@ -42,7 +42,7 @@ func New() *HTTPHandler {
 // Mount function
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.POST("/v1/users/register", h.Register)
-	// echoGroup.POST("/v1/users/register", h.Register, middleware.VerifyBasicAuth())
+	echoGroup.POST("/v1/users/login", h.Login)
 	// echoGroup.GET("/v1/users/:id", h.ViewProfile, middleware.VerifyBearer())
 	// echoGroup.PUT("/v1/users/:id", h.UpdateProfile, middleware.VerifyBearer())
 	// echoGroup.PUT("/v1/users/avatar/:id", h.UpdateAvatar, middleware.VerifyBearer())
@@ -72,4 +72,25 @@ func (h *HTTPHandler) Register(c echo.Context) error {
 	}
 
 	return utils.Response(result.Data, "Register User", http.StatusCreated, c)
+}
+
+// Login Function
+func (h *HTTPHandler) Login(c echo.Context) error {
+	body, _ := ioutil.ReadAll(c.Request().Body)
+
+	if err := utils.ValidateDocument("login", body); err != nil {
+		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
+	}
+
+	var data models.LoginRequest
+	json.Unmarshal(body, &data)
+
+	result := h.commandUsecase.Login(c.Request().Context(), &data)
+
+	if result.Error != nil {
+		return utils.ResponseError(result.Error, c)
+	}
+
+	return utils.Response(result.Data, "Login User", http.StatusOK, c)
+
 }

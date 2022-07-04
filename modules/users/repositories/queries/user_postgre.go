@@ -40,3 +40,43 @@ func (c *UserpostgreQuery) FindOne(ctx context.Context, query string, parameter 
 
 	return output
 }
+
+// find one by Username
+func (c *UserpostgreQuery) FindOneByUsername(ctx context.Context, username string) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+
+		var user models.User
+		result := c.db.Model(&user).Where(c.db.Where("username = ?", username)).Find(&user)
+		if result.Error != nil {
+			output <- utils.Result{
+				Error: result.Error,
+			}
+		}
+		output <- utils.Result{Data: user}
+	}()
+
+	return output
+}
+
+func (c *UserpostgreQuery) FindOneByEmail(ctx context.Context, email string) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+
+		var user models.User
+
+		result := c.db.Where("email = ?", email).Find(&user)
+		if result.Error != nil {
+			output <- utils.Result{
+				Error: result.Error,
+			}
+		}
+		output <- utils.Result{Data: user}
+	}()
+
+	return output
+}
