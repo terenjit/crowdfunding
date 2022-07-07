@@ -34,3 +34,19 @@ func (c *UserpostgreCommand) InsertOneUser(ctx context.Context, data *models.Use
 
 	return output
 }
+
+func (c *UserpostgreCommand) Update(param string, data *models.User) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+		var user models.User
+		res := c.db.Model(&user).Where(param).Save(data)
+		if res.Error != nil {
+			output <- utils.Result{Error: res.Error}
+		}
+
+		output <- utils.Result{Data: res.RowsAffected}
+	}()
+	return output
+}

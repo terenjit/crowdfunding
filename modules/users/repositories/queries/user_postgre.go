@@ -80,3 +80,23 @@ func (c *UserpostgreQuery) FindOneByEmail(ctx context.Context, email string) <-c
 
 	return output
 }
+
+func (c *UserpostgreQuery) FindOneByID(ctx context.Context, ID string) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+
+		var user models.User
+
+		result := c.db.Where("id = ?", ID).Find(&user)
+		if result.Error != nil {
+			output <- utils.Result{
+				Error: result.Error,
+			}
+		}
+		output <- utils.Result{Data: user}
+	}()
+
+	return output
+}

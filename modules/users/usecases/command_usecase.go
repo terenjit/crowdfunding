@@ -7,6 +7,9 @@ import (
 	"crowdfunding/modules/users/repositories/commands"
 	"crowdfunding/modules/users/repositories/queries"
 	"crowdfunding/pkg/utils"
+	"fmt"
+	"mime/multipart"
+	"path/filepath"
 	"strings"
 
 	httpError "crowdfunding/pkg/http-error"
@@ -130,5 +133,48 @@ func (c userCommandUsecase) Login(ctx context.Context, payload *models.LoginRequ
 	}
 
 	result.Data = data
+	return result
+}
+
+func (c userCommandUsecase) SaveAvatar(ctx context.Context, file multipart.File, header *multipart.FileHeader, ID string) utils.Result {
+	var result utils.Result
+
+	param := fmt.Sprintf("id = '%v'", ID)
+
+	res := <-c.userPostgreQuery.FindOneByID(ctx, ID)
+	user := res.Data.(models.User)
+	if user.ID == "" {
+		errObj := httpError.NewNotFound()
+		errObj.Message = "Akun tidak ditemukan"
+		result.Error = errObj
+		return result
+	}
+
+	user.AvatarFileName = header.Filename
+	size := header.Size
+	ext := filepath.Ext(user.AvatarFileName)
+	if ext != ".jpg" && ext != ".png" && ext != ".jpeg" {
+		errObj := httpError.NewBadRequest()
+		errObj.Message = "Format file tidak valid, format yang valid: jpg, png, jpeg"
+		result.Error = errObj
+		return result
+	}
+
+	if size > int64(1024*1024*2) {
+		errObj := httpError.NewBadRequest()
+		errObj.Message = "size photo tidak boleh lebih dari 2MB"
+		result.Error = errObj
+		return result
+	}
+
+	res = <-c.userPostgreCommand.Update(param, &user)
+	if res.Error != nil {
+		errObj := httpError.NewInternalServerError()
+		errObj.Message = "gagal update avatar error: "
+		result.Error = errObj
+		return result
+	}
+
+	result.Data = user
 	return result
 }

@@ -43,15 +43,8 @@ func New() *HTTPHandler {
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.POST("/v1/users/register", h.Register)
 	echoGroup.POST("/v1/users/login", h.Login)
-	// echoGroup.GET("/v1/users/:id", h.ViewProfile, middleware.VerifyBearer())
-	// echoGroup.PUT("/v1/users/:id", h.UpdateProfile, middleware.VerifyBearer())
-	// echoGroup.PUT("/v1/users/avatar/:id", h.UpdateAvatar, middleware.VerifyBearer())
-	// echoGroup.POST("/v1/users/refresh-token", h.RefreshToken, middleware.VerifyBasicAuth())
-	// echoGroup.POST("/v1/users/logout", h.Logout, middleware.VerifyBearer())
-	// echoGroup.PUT("/v1/users/change-password", h.ChangePassword, middleware.VerifyBearer())
-	// echoGroup.POST("/v1/users/otp", h.GenerateOTP, middleware.VerifyBasicAuth())
-	// echoGroup.POST("/v1/users/verify-otp-code", h.VerifyOtpCode, middleware.VerifyBasicAuth())
-	// echoGroup.POST("/v1/users/forgot-account", h.ForgotAccount, middleware.VerifyBasicAuth())
+	echoGroup.POST("/v1/users/avatars", h.UploadAvatar)
+
 }
 
 // Register Function
@@ -93,4 +86,21 @@ func (h *HTTPHandler) Login(c echo.Context) error {
 
 	return utils.Response(result.Data, "Login User", http.StatusOK, c)
 
+}
+
+func (h *HTTPHandler) UploadAvatar(c echo.Context) error {
+	//ID := c.Param("id")
+	userId := "c1710d7f-0816-4d40-a090-da322f83187a"
+	file, header, err := c.Request().FormFile("avatar")
+
+	if err != nil {
+		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
+	}
+
+	result := h.commandUsecase.SaveAvatar(c.Request().Context(), file, header, userId)
+	if result.Error != nil {
+		return utils.ResponseError(result.Error, c)
+	}
+
+	return utils.Response(result.Data, "Success update avatar", http.StatusOK, c)
 }
