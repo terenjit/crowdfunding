@@ -2,17 +2,18 @@ package usecases
 
 import (
 	"context"
+	"crowdfunding/config"
 	"crowdfunding/modules/users/helpers"
 	models "crowdfunding/modules/users/models/domain"
 	"crowdfunding/modules/users/repositories/commands"
 	"crowdfunding/modules/users/repositories/queries"
+	httpError "crowdfunding/pkg/http-error"
+	"crowdfunding/pkg/token"
 	"crowdfunding/pkg/utils"
 	"fmt"
 	"mime/multipart"
 	"path/filepath"
 	"strings"
-
-	httpError "crowdfunding/pkg/http-error"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -123,13 +124,15 @@ func (c userCommandUsecase) Login(ctx context.Context, payload *models.LoginRequ
 		return result
 	}
 
+	jwt := <-token.Generate(ctx, findUser.ID, config.GlobalEnv.AccessTokenExpired)
+
 	data := models.UserFormatter{
 		ID:         findUser.ID,
 		Name:       findUser.Name,
 		Username:   findUser.Username,
 		Email:      findUser.Email,
 		Occupation: findUser.Occupation,
-		Token:      "tokentokentoken",
+		Token:      jwt.Data.(string),
 	}
 
 	result.Data = data

@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -16,16 +17,17 @@ type Config struct {
 }
 
 type Env struct {
-	RootApp         string
-	HTTPPort        uint16
-	PrivateKey      *rsa.PrivateKey
-	PublicKey       *rsa.PublicKey
-	PostgreHost     string
-	PostgreUser     string
-	PostgrePassword string
-	PostgreDBName   string
-	PostgrePort     uint16
-	PostgreSSLMode  string
+	RootApp            string
+	HTTPPort           uint16
+	PrivateKey         *rsa.PrivateKey
+	PublicKey          *rsa.PublicKey
+	AccessTokenExpired time.Duration
+	PostgreHost        string
+	PostgreUser        string
+	PostgrePassword    string
+	PostgreDBName      string
+	PostgrePort        uint16
+	PostgreSSLMode     string
 }
 
 // GlobalEnv global environment
