@@ -16,7 +16,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-//HTTP Handler
+// HTTP Handler
 type HTTPHandler struct {
 	commandUsecase usecases.CommandUsecase
 	queryUsecase   usecases.QueryUsecase
@@ -43,7 +43,7 @@ func New() *HTTPHandler {
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.POST("/v1/users/register", h.Register)
 	echoGroup.POST("/v1/users/login", h.Login)
-	echoGroup.POST("/v1/users/avatars", h.UploadAvatar)
+	echoGroup.POST("/v1/users/avatars/:id", h.UploadAvatar)
 
 }
 
@@ -89,15 +89,15 @@ func (h *HTTPHandler) Login(c echo.Context) error {
 }
 
 func (h *HTTPHandler) UploadAvatar(c echo.Context) error {
-	//ID := c.Param("id")
-	userId := "c1710d7f-0816-4d40-a090-da322f83187a"
+	ID := c.Param("id")
+
 	file, header, err := c.Request().FormFile("avatar")
 
 	if err != nil {
 		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
 	}
 
-	result := h.commandUsecase.SaveAvatar(c.Request().Context(), file, header, userId)
+	result := h.commandUsecase.SaveAvatar(c.Request().Context(), file, header, ID)
 	if result.Error != nil {
 		return utils.ResponseError(result.Error, c)
 	}

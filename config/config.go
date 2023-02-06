@@ -11,10 +11,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Config struct {
-	PrivateKey *rsa.PrivateKey
-	PublicKey  *rsa.PublicKey
-}
+// type Config struct {
+// 	PrivateKey *rsa.PrivateKey
+// 	PublicKey  *rsa.PublicKey
+// }
 
 type Env struct {
 	RootApp            string
