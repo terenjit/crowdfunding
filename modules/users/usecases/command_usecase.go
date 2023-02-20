@@ -124,7 +124,18 @@ func (c userCommandUsecase) Login(ctx context.Context, payload *models.LoginRequ
 		return result
 	}
 
-	jwt := <-token.Generate(ctx, findUser.ID, config.GlobalEnv.AccessTokenExpired)
+	claim := token.Claim{
+		Username: findUser.Username,
+		UserID:   findUser.ID,
+	}
+
+	jwt := <-token.Generate(ctx, &claim, config.GlobalEnv.AccessTokenExpired)
+	if jwt.Error != nil {
+		errObj := httpError.NewBadRequest()
+		errObj.Message = fmt.Sprintf("%v", queryRes.Error)
+		result.Error = errObj
+		return result
+	}
 
 	data := models.UserFormatter{
 		ID:         findUser.ID,

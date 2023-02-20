@@ -1,7 +1,6 @@
 package config
 
 import (
-	"crypto/rsa"
 	"log"
 	"os"
 	"strconv"
@@ -11,17 +10,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// type Config struct {
-// 	PrivateKey *rsa.PrivateKey
-// 	PublicKey  *rsa.PublicKey
-// }
-
 type Env struct {
 	RootApp            string
 	HTTPPort           uint16
-	PrivateKey         *rsa.PrivateKey
-	PublicKey          *rsa.PublicKey
 	AccessTokenExpired time.Duration
+	BasicAuthUsername  string
+	BasicAuthPassword  string
 	PostgreHost        string
 	PostgreUser        string
 	PostgrePassword    string
@@ -50,13 +44,21 @@ func init() {
 	rootApp := strings.TrimSuffix(path, "/config")
 	os.Setenv("APP_PATH", rootApp)
 	GlobalEnv.RootApp = rootApp
-	// GlobalEnv.PrivateKey = key.LoadPrivateKey()
-	// GlobalEnv.PublicKey = key.LoadPublicKey()
 
 	if port, err := strconv.Atoi(os.Getenv("HTTP_PORT")); err != nil {
 		panic("missing HTTP_PORT environment")
 	} else {
 		GlobalEnv.HTTPPort = uint16(port)
+	}
+
+	GlobalEnv.BasicAuthUsername, ok = os.LookupEnv("BASIC_AUTH_USERNAME")
+	if !ok {
+		panic("missing BASIC_AUTH_USERNAME environment")
+	}
+
+	GlobalEnv.BasicAuthPassword, ok = os.LookupEnv("BASIC_AUTH_PASSWORD")
+	if !ok {
+		panic("missing BASIC_AUTH_PASSWORD environment")
 	}
 
 	GlobalEnv.PostgreHost, ok = os.LookupEnv("POSTGRE_HOST")
@@ -88,5 +90,10 @@ func init() {
 	GlobalEnv.PostgreSSLMode, ok = os.LookupEnv("POSTGRE_SSLMODE")
 	if !ok {
 		panic("missing POSTGRE_SSLMODE environment")
+	}
+
+	GlobalEnv.AccessTokenExpired, err = time.ParseDuration("100m")
+	if err != nil {
+		panic("failed parsing AccessTokenExpired")
 	}
 }

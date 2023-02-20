@@ -1,6 +1,8 @@
 package usecases
 
-import "crowdfunding/modules/users/repositories/queries"
+import (
+	"crowdfunding/modules/users/repositories/queries"
+)
 
 type userQueryUsecase struct {
 	userPostgreQuery queries.UserPostgre

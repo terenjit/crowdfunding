@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"crowdfunding/config"
+	"crowdfunding/middleware"
 	models "crowdfunding/modules/users/models/domain"
 	"crowdfunding/modules/users/repositories/commands"
 	"crowdfunding/modules/users/repositories/queries"
@@ -42,8 +43,8 @@ func New() *HTTPHandler {
 // Mount function
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.POST("/v1/users/register", h.Register)
-	echoGroup.POST("/v1/users/login", h.Login)
-	echoGroup.POST("/v1/users/avatars/:id", h.UploadAvatar)
+	echoGroup.POST("/v1/users/login", h.Login, middleware.VerifyBasicAuth())
+	echoGroup.POST("/v1/users/avatars/:id", h.UploadAvatar, middleware.VerifyBearer())
 
 }
 

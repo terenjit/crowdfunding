@@ -10,7 +10,7 @@ import (
 
 var secret_key = []byte("CrowdFunding_s3cr3t_k3y")
 
-func Generate(ctx context.Context, UserId string, expired time.Duration) <-chan utils.Result {
+func Generate(ctx context.Context, payload *Claim, expired time.Duration) <-chan utils.Result {
 	output := make(chan utils.Result)
 
 	go func() {
@@ -20,9 +20,9 @@ func Generate(ctx context.Context, UserId string, expired time.Duration) <-chan 
 		exp := now.Add(expired)
 
 		claims := jwt.MapClaims{
-			"exp": exp.Unix(),
-			"iat": now.Unix(),
-			"id":  UserId,
+			"exp":      exp.Unix(),
+			"id":       payload.UserID,
+			"username": payload.Username,
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -73,12 +73,8 @@ func Validate(ctx context.Context, tokenString string) <-chan utils.Result {
 		mapClaims, _ := tokenParse.Claims.(jwt.MapClaims)
 
 		tokenClaim := Claim{
-			UserID: mapClaims["userId"].(string),
-			Key:    mapClaims["key"].(string),
-		}
-
-		if mapClaims["rt"] != nil {
-			tokenClaim.RefreshToken = mapClaims["rt"].(string)
+			Username: mapClaims["username"].(string),
+			UserID:   mapClaims["id"].(string),
 		}
 
 		output <- utils.Result{Data: tokenClaim}
