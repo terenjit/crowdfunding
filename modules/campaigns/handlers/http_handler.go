@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"crowdfunding/middleware"
 	models "crowdfunding/modules/campaigns/models/domain"
 	"crowdfunding/modules/campaigns/repositories/commands"
 	"crowdfunding/modules/campaigns/repositories/queries"
@@ -28,7 +27,7 @@ func New() *HTTPHandler {
 	QueryUsecase := usecases.NewQueryUsecase(PostgreQuery)
 
 	postgreCommand := commands.NewPostgreCommand(postgreDb)
-	commandUsecase := usecases.NewCommandUsecasePostgre(postgreCommand, PostgreQuery)
+	commandUsecase := usecases.NewCommandUsecasePostgre(PostgreQuery, postgreCommand)
 	return &HTTPHandler{
 		queryUsecase:    QueryUsecase,
 		commandUsecases: commandUsecase,
@@ -36,7 +35,7 @@ func New() *HTTPHandler {
 }
 
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
-	echoGroup.GET("/v1/campaigns", h.getList, middleware.VerifyBearer())
+	echoGroup.GET("/v1/campaigns", h.getList)
 
 }
 

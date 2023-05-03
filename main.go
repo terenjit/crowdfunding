@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	campaignHTTPHandler "crowdfunding/modules/campaigns/handlers"
 	userHTTPHandler "crowdfunding/modules/users/handlers"
 
 	"github.com/labstack/echo/v4"
@@ -22,11 +23,15 @@ func main() {
 		return c.String(http.StatusOK, "This service is running properly")
 	})
 
-	userGroup := e.Group("/users")
+	crowdfundingGroup := e.Group("/crowdfunding")
 
 	//initiate user http handler
 	userHTTP := userHTTPHandler.New()
-	userHTTP.Mount(userGroup)
+	userHTTP.Mount(crowdfundingGroup)
+
+	//initiate campaign http handler
+	campaignsHTTP := campaignHTTPHandler.New()
+	campaignsHTTP.Mount(crowdfundingGroup)
 
 	listenerPort := fmt.Sprintf("localhost:%d", config.GlobalEnv.HTTPPort)
 	e.Logger.Fatal(e.Start(listenerPort))

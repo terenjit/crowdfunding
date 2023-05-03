@@ -16,6 +16,12 @@ type Result struct {
 	Count    int64
 }
 
+type ResultCount struct {
+	Data     int64
+	MetaData interface{}
+	Error    interface{}
+}
+
 // BaseWrapperModel data structure
 type BaseWrapperModel struct {
 	Success bool        `json:"success"`
