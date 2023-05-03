@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"crowdfunding/pkg/token"
+	"time"
+)
 
 type Campaign struct {
 	ID               string    `json:"id"`
@@ -24,4 +27,15 @@ type CampaignImage struct {
 	IsPrimary  int       `json:"is_primary"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
+}
+
+type CampainGetList struct {
+	Status   string      `json:"status"`
+	Search   interface{} `json:"search"`
+	Page     int         `json:"page"`
+	Quantity int         `json:"quantity"`
+	Query    string      `query:"query"`
+	SortBy   string      `json:"sort_by"`
+	UserID   string      `json:"user_id"`
+	Opts     token.Claim `json:"opts"`
 }

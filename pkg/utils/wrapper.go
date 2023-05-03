@@ -10,11 +10,13 @@ import (
 
 // Result common output
 type Result struct {
-	Data  interface{}
-	Error interface{}
+	Data     interface{}
+	MetaData interface{}
+	Error    interface{}
+	Count    int64
 }
 
-//BaseWrapperModel data structure
+// BaseWrapperModel data structure
 type BaseWrapperModel struct {
 	Success bool        `json:"success"`
 	Data    interface{} `json:"data"`
@@ -23,7 +25,7 @@ type BaseWrapperModel struct {
 	Meta    interface{} `json:"meta,omitempty"`
 }
 
-//Response function
+// Response function
 func Response(data interface{}, message string, code int, c echo.Context) error {
 	success := false
 
@@ -41,7 +43,7 @@ func Response(data interface{}, message string, code int, c echo.Context) error 
 	return c.JSON(code, result)
 }
 
-//ResponseError function
+// ResponseError function
 func ResponseError(err interface{}, c echo.Context) error {
 	errObj := getErrorStatusCode(err)
 	result := BaseWrapperModel{
@@ -52,6 +54,25 @@ func ResponseError(err interface{}, c echo.Context) error {
 	}
 
 	return c.JSON(errObj.ResponseCode, result)
+}
+
+// PaginationResponse function
+func PaginationResponse(data interface{}, meta interface{}, message string, code int, c echo.Context) error {
+	success := false
+
+	if code < http.StatusBadRequest {
+		success = true
+	}
+
+	result := BaseWrapperModel{
+		Success: success,
+		Data:    data,
+		Meta:    meta,
+		Message: message,
+		Code:    code,
+	}
+
+	return c.JSON(code, result)
 }
 
 func getErrorStatusCode(err interface{}) httpError.CommonError {
