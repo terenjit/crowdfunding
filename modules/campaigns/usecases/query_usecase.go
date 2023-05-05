@@ -4,7 +4,9 @@ import (
 	"context"
 	models "crowdfunding/modules/campaigns/models/domain"
 	"crowdfunding/modules/campaigns/repositories/queries"
+	httpError "crowdfunding/pkg/http-error"
 	"crowdfunding/pkg/utils"
+	"encoding/json"
 	"math"
 )
 
@@ -18,15 +20,43 @@ func NewQueryUsecase(campaignPostgreQuery queries.CampaignsPostgre) *campaignQue
 	}
 }
 
+func (q campaignQueryUsecase) GetDetail(ctx context.Context, id string) utils.Result {
+	var result utils.Result
+
+	queryRes := <-q.campaignPostgreQuery.FindOne(ctx, id)
+	if queryRes.Error != nil {
+		errObj := httpError.NewNotFound()
+		errObj.Message = "Campaign tidak ditemukan"
+		result.Error = errObj
+		return result
+	}
+
+	var dataCampaign models.Campaign
+	jsonCampaign, _ := json.Marshal(queryRes.Data)
+	json.Unmarshal(jsonCampaign, &dataCampaign)
+
+	parameter := make(map[string]interface{})
+	parameter["id"] = id
+
+	queryPayload := queries.QueryPayload{
+		Table:     "campaign_images ci",
+		Select:    "ci.id , ci.campaign_id, ci.file_name, ci.is_primary",
+		Query:     "ci.campaign_id = @id AND ci.is_primary = 1",
+		Parameter: parameter,
+		Output:    []models.CampaignImages{},
+	}
+	campaignImages := <-q.campaignPostgreQuery.FindManyJoin(&queryPayload)
+	if campaignImages.Error == nil {
+		dataCampaign.Images = campaignImages.Data.([]models.CampaignImages)
+	}
+
+	result.Data = dataCampaign
+	return result
+}
+
 func (q campaignQueryUsecase) GetList(ctx context.Context, payload *models.CampainGetList) utils.Result {
 	var result utils.Result
 	var queryRes utils.Result
-	//var count utils.ResultCount
-	// queryRes.Data = []models.Campaign{}
-	//count.Data = 0
-	// quantity := payload.Quantity
-	// page := payload.Page
-	// offset := quantity * (page - 1)
 
 	var query string
 	parameter := make(map[string]interface{})

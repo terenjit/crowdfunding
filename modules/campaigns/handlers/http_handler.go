@@ -36,6 +36,7 @@ func New() *HTTPHandler {
 
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.GET("/v1/campaigns", h.getList)
+	echoGroup.GET("/v1/campaigns/:id", h.getDetail)
 
 }
 
@@ -68,4 +69,15 @@ func (h *HTTPHandler) getList(c echo.Context) error {
 	}
 
 	return utils.PaginationResponse(result.Data, result.MetaData, "List All Campaigns", http.StatusOK, c)
+}
+
+func (h *HTTPHandler) getDetail(c echo.Context) error {
+	id := c.Param("id")
+
+	result := h.queryUsecase.GetDetail(c.Request().Context(), id)
+	if result.Error != nil {
+		return utils.ResponseError(result.Error, c)
+	}
+
+	return utils.Response(result.Data, "Detail Campaign", http.StatusOK, c)
 }
