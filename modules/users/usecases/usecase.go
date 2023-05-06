@@ -16,4 +16,6 @@ type CommandUsecase interface {
 
 type QueryUsecase interface {
 	// ViewProfile(ctx context.Context, userId string) utils.Result
+	GetList(ctx context.Context, payload *models.UsersGetList) utils.Result
+	GetDetail(ctx context.Context, id string) utils.Result
 }

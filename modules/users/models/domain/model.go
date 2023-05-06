@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"crowdfunding/pkg/token"
+	"time"
+)
 
 type User struct {
 	ID             string    `json:"id" gorm:"primaryKey;autoIncrement:true"`
@@ -15,7 +18,7 @@ type User struct {
 	UpdatedAt      time.Time `json:"updated_at"`
 }
 
-//userDataFormat
+// userDataFormat
 type UserFormatter struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`
@@ -25,7 +28,7 @@ type UserFormatter struct {
 	Token      string `json:"token"`
 }
 
-//Register
+// Register
 type Register struct {
 	ID         string `json:"id"`
 	Name       string `json:"name" `
@@ -35,8 +38,19 @@ type Register struct {
 	Password   string `json:"password" `
 }
 
-//LoginRequest
+// LoginRequest
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type UsersGetList struct {
+	Status   string      `json:"status"`
+	Search   interface{} `json:"search"`
+	Page     int         `json:"page"`
+	Quantity int         `json:"quantity"`
+	Query    string      `query:"query"`
+	SortBy   string      `json:"sort_by"`
+	UserID   string      `json:"user_id"`
+	Opts     token.Claim `json:"opts"`
 }
