@@ -9,8 +9,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/labstack/echo/v4"
 	"github.com/xeipuuv/gojsonschema"
 )
+
+type ValidationUtil struct {
+	validator *validator.Validate
+}
 
 var notShowErrorListType = map[string]bool{
 	"condition_else": true, "condition_then": true,
@@ -118,5 +124,23 @@ func validate(schema *gojsonschema.Schema, document gojsonschema.JSONLoader) err
 		return multiError
 	}
 
+	return nil
+}
+
+func NewValidationUtil() echo.Validator {
+	return &ValidationUtil{validator: validator.New()}
+}
+
+func (v *ValidationUtil) Validate(i interface{}) error {
+	return v.validator.Struct(i)
+}
+
+func BindValidate(c echo.Context, i interface{}) error {
+	if err := c.Bind(i); err != nil {
+		return err
+	}
+	if err := c.Validate(i); err != nil {
+		return err
+	}
 	return nil
 }
