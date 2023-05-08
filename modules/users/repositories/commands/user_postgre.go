@@ -13,6 +13,22 @@ type UserpostgreCommand struct {
 	db *gorm.DB
 }
 
+type CommandPayload struct {
+	Table     string
+	Query     string
+	Parameter map[string]interface{}
+	Where     map[string]interface{}
+	Select    string
+	Join      string
+	Limit     int
+	Offset    int
+	Order     string
+	Group     string
+	Distinct  string
+	Document  interface{}
+	Output    interface{}
+}
+
 // NewUserPostgreQuery create new user query
 func NewUserPostgreCommand(db *gorm.DB) *UserpostgreCommand {
 	return &UserpostgreCommand{
@@ -48,5 +64,21 @@ func (c *UserpostgreCommand) Update(param string, data *models.User) <-chan util
 
 		output <- utils.Result{Data: res.RowsAffected}
 	}()
+	return output
+}
+
+func (c *UserpostgreCommand) UpdatedUser(payload *CommandPayload) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+
+		result := c.db.Table(payload.Table).Where(payload.Query, payload.Parameter).Updates(payload.Document)
+		if result.Error != nil {
+			output <- utils.Result{Error: result}
+		}
+
+	}()
+
 	return output
 }

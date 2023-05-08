@@ -14,6 +14,7 @@ import (
 	"mime/multipart"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -190,5 +191,31 @@ func (c userCommandUsecase) SaveAvatar(ctx context.Context, file multipart.File,
 	}
 
 	result.Data = user
+	return result
+}
+
+func (c userCommandUsecase) Update(ctx context.Context, payload *models.UpdatedUser) utils.Result {
+	var result utils.Result
+
+	var query string
+	parameter := make(map[string]interface{})
+
+	query = "u.id = @id"
+	parameter["id"] = payload.ID
+
+	currentTime := time.Now()
+	payload.UpdatedAt = currentTime
+	payload.UpdatedBy = payload.ID
+
+	queryPayload := commands.CommandPayload{
+		Table:     "users u",
+		Query:     query,
+		Parameter: parameter,
+		Document:  payload,
+	}
+
+	c.userPostgreCommand.UpdatedUser(&queryPayload)
+
+	result.Data = payload
 	return result
 }

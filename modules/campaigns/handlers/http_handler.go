@@ -9,6 +9,7 @@ import (
 	database "crowdfunding/pkg/databases"
 	"crowdfunding/pkg/utils"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -16,8 +17,8 @@ import (
 )
 
 type HTTPHandler struct {
-	queryUsecase    usecases.QueryUsecase
-	commandUsecases usecases.CommandUsecase
+	queryUsecase   usecases.QueryUsecase
+	commandUsecase usecases.CommandUsecase
 }
 
 func New() *HTTPHandler {
@@ -29,14 +30,15 @@ func New() *HTTPHandler {
 	postgreCommand := commands.NewPostgreCommand(postgreDb)
 	commandUsecase := usecases.NewCommandUsecasePostgre(PostgreQuery, postgreCommand)
 	return &HTTPHandler{
-		queryUsecase:    QueryUsecase,
-		commandUsecases: commandUsecase,
+		queryUsecase:   QueryUsecase,
+		commandUsecase: commandUsecase,
 	}
 }
 
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.GET("/v1/campaigns", h.getList)
 	echoGroup.GET("/v1/campaigns/:id", h.getDetail)
+	echoGroup.PUT("/v1/campaigns/:id", h.Update)
 
 }
 
@@ -80,4 +82,19 @@ func (h *HTTPHandler) getDetail(c echo.Context) error {
 	}
 
 	return utils.Response(result.Data, "Detail Campaign", http.StatusOK, c)
+}
+
+func (h *HTTPHandler) Update(c echo.Context) error {
+	var data = new(models.UpdateCampaign)
+
+	if err := utils.BindValidate(c, data); err != nil {
+		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
+	}
+
+	result := h.commandUsecase.Update(c.Request().Context(), data)
+	if result.Error != nil {
+		log.Println(result.Error)
+		return utils.ResponseError(result.Error, c)
+	}
+	return utils.Response(result.Data, "User success updated", http.StatusOK, c)
 }

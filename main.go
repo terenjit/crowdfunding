@@ -2,6 +2,7 @@ package main
 
 import (
 	"crowdfunding/config"
+	"crowdfunding/pkg/utils"
 	"fmt"
 	"net/http"
 
@@ -16,7 +17,7 @@ func main() {
 
 	// Echo instance
 	e := echo.New()
-
+	e.Validator = utils.NewValidationUtil()
 	e.Use(middleware.CORS())
 
 	e.GET("users", func(c echo.Context) error {

@@ -40,3 +40,20 @@ type CampainGetList struct {
 	UserID   string      `json:"user_id"`
 	Opts     token.Claim `json:"opts"`
 }
+
+type UpdateCampaign struct {
+	ID               string           `json:"id"`
+	UserID           string           `json:"user_id"`
+	Name             string           `json:"name"`
+	ShortDescription string           `json:"short_description"`
+	Description      string           `json:"description" `
+	Perks            string           `json:"perks"`
+	BackerCount      int              `json:"backer_count"`
+	GoalAmount       int              `json:"goal_amount"`
+	CurrentAmount    int              `json:"current_amount"`
+	Slug             int              `json:"slug"`
+	Images           []CampaignImages `json:"images" gorm:"-"`
+	CreatedAt        time.Time        `json:"created_at"`
+	UpdatedAt        time.Time        `json:"updated_at"`
+	UpdatedBy        string           `json:"update_by"`
+}

@@ -12,6 +12,7 @@ import (
 	"crowdfunding/pkg/utils"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -48,6 +49,7 @@ func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.POST("/v1/users/avatars/:id", h.UploadAvatar, middleware.VerifyBearer())
 	echoGroup.GET("/v1/users", h.getList)
 	echoGroup.GET("/v1/users/:id", h.getDetail)
+	echoGroup.PUT("/v1/users/:id", h.Update)
 
 }
 
@@ -147,4 +149,19 @@ func (h *HTTPHandler) getDetail(c echo.Context) error {
 	}
 
 	return utils.Response(result.Data, "Detail User", http.StatusOK, c)
+}
+
+func (h *HTTPHandler) Update(c echo.Context) error {
+	var data = new(models.UpdatedUser)
+
+	if err := utils.BindValidate(c, data); err != nil {
+		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
+	}
+
+	result := h.commandUsecase.Update(c.Request().Context(), data)
+	if result.Error != nil {
+		log.Println(result.Error)
+		return utils.ResponseError(result.Error, c)
+	}
+	return utils.Response(result.Data, "User success updated", http.StatusOK, c)
 }

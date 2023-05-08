@@ -54,3 +54,17 @@ type UsersGetList struct {
 	UserID   string      `json:"user_id"`
 	Opts     token.Claim `json:"opts"`
 }
+
+type UpdatedUser struct {
+	ID             string    `json:"id" param:"id" validate:"required"`
+	Name           string    `json:"name"`
+	Username       string    `json:"username"`
+	Occupation     string    `json:"occupation"`
+	Email          string    `json:"email"`
+	Password       string    `json:"password"`
+	AvatarFileName string    `json:"avatar"`
+	Role           string    `json:"role"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	UpdatedBy      string    `json:"update_by"`
+}
