@@ -47,9 +47,9 @@ func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.POST("/v1/users/register", h.Register)
 	echoGroup.POST("/v1/users/login", h.Login, middleware.VerifyBasicAuth())
 	echoGroup.POST("/v1/users/avatars/:id", h.UploadAvatar, middleware.VerifyBearer())
-	echoGroup.GET("/v1/users", h.getList)
-	echoGroup.GET("/v1/users/:id", h.getDetail)
-	echoGroup.PUT("/v1/users/:id", h.Update)
+	echoGroup.GET("/v1/users", h.getList, middleware.VerifyBearer())
+	echoGroup.GET("/v1/users/:id", h.getDetail, middleware.VerifyBearer())
+	echoGroup.PUT("/v1/users/:id", h.Update, middleware.VerifyBearer())
 
 }
 
