@@ -8,7 +8,7 @@ import (
 
 type QueryUsecase interface {
 	GetList(ctx context.Context, payload *models.CampainGetList) utils.Result
-	GetDetail(ctx context.Context, id string) utils.Result
+	GetDetail(ctx context.Context, payload *models.CampaignGetDetail) utils.Result
 }
 
 // CommandUsecase interface

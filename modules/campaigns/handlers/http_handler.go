@@ -38,7 +38,7 @@ func New() *HTTPHandler {
 
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.GET("/v1/campaigns", h.getList, middleware.VerifyBearer())
-	echoGroup.GET("/v1/campaigns/:id", h.getDetail, middleware.VerifyBearer())
+	echoGroup.GET("/v1/campaigns/:id", h.getDetail)
 	echoGroup.PUT("/v1/campaigns/:id", h.Update, middleware.VerifyBearer())
 
 }
@@ -77,7 +77,19 @@ func (h *HTTPHandler) getList(c echo.Context) error {
 func (h *HTTPHandler) getDetail(c echo.Context) error {
 	id := c.Param("id")
 
-	result := h.queryUsecase.GetDetail(c.Request().Context(), id)
+	query := make(map[string]interface{})
+
+	for key, value := range c.QueryParams() {
+		query[key] = value[0]
+	}
+
+	payload, _ := json.Marshal(query)
+	var data models.CampaignGetDetail
+	json.Unmarshal(payload, &data)
+
+	data.ID = id
+
+	result := h.queryUsecase.GetDetail(c.Request().Context(), &data)
 	if result.Error != nil {
 		return utils.ResponseError(result.Error, c)
 	}

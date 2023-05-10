@@ -36,20 +36,18 @@ type QueryPayload struct {
 	Distinct  string
 }
 
-func (c *CampaignsPostgreQuery) FindOne(ctx context.Context, id string) <-chan utils.Result {
+func (c *CampaignsPostgreQuery) FindOne(payload *QueryPayload) <-chan utils.Result {
 	output := make(chan utils.Result)
 
 	go func() {
 		defer close(output)
-
 		var data map[string]interface{}
-		result := c.db.Table("campaigns").Where("id = ?", id).Find(&data)
+		result := c.db.Debug().Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Limit(1).Find(&data)
 		if result.Error != nil || result.RowsAffected == 0 {
 			output <- utils.Result{
 				Error: "Data Not Found",
 			}
 		}
-
 		output <- utils.Result{Data: data}
 	}()
 

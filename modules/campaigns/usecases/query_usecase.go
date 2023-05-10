@@ -8,6 +8,7 @@ import (
 	"crowdfunding/pkg/utils"
 	"encoding/json"
 	"math"
+	"strings"
 )
 
 type campaignQueryUsecase struct {
@@ -20,35 +21,80 @@ func NewQueryUsecase(campaignPostgreQuery queries.CampaignsPostgre) *campaignQue
 	}
 }
 
-func (q campaignQueryUsecase) GetDetail(ctx context.Context, id string) utils.Result {
+func (q campaignQueryUsecase) GetDetail(ctx context.Context, payload *models.CampaignGetDetail) utils.Result {
 	var result utils.Result
 
-	queryRes := <-q.campaignPostgreQuery.FindOne(ctx, id)
+	parameter := make(map[string]interface{})
+	parameter["is_deleted"] = false
+	parameter["id"] = payload.ID
+
+	queryPayload := queries.QueryPayload{
+		Table:     "campaigns c",
+		Select:    "c.* ",
+		Query:     "c.id = @id AND c.is_deleted = @is_deleted",
+		Parameter: parameter,
+		Output:    models.Campaign{},
+	}
+
+	queryRes := <-q.campaignPostgreQuery.FindOne(&queryPayload)
 	if queryRes.Error != nil {
 		errObj := httpError.NewNotFound()
 		errObj.Message = "Campaign tidak ditemukan"
 		result.Error = errObj
 		return result
 	}
-
-	var dataCampaign models.Campaign
+	var campaign models.Campaign
 	jsonCampaign, _ := json.Marshal(queryRes.Data)
-	json.Unmarshal(jsonCampaign, &dataCampaign)
+	json.Unmarshal(jsonCampaign, &campaign)
 
-	parameter := make(map[string]interface{})
-	parameter["id"] = id
+	var perks []string
 
-	queryPayload := queries.QueryPayload{
+	for _, perk := range strings.Split(campaign.Perks, ",") {
+		perks = append(perks, strings.TrimSpace(perk))
+	}
+
+	var dataCampaign models.CampaignFormatter
+	jsonCampaignFormatter, _ := json.Marshal(queryRes.Data)
+	json.Unmarshal(jsonCampaignFormatter, &dataCampaign)
+
+	dataCampaign.Perks = perks
+
+	queryPayload = queries.QueryPayload{
 		Table:     "campaign_images ci",
-		Select:    "ci.id , ci.campaign_id, ci.file_name, ci.is_primary",
-		Query:     "ci.campaign_id = @id AND ci.is_primary = 1",
+		Select:    "ci.file_name, ci.is_primary",
+		Query:     "ci.campaign_id = @id",
 		Parameter: parameter,
-		Output:    []models.CampaignImages{},
+		Output:    []models.CampaignImagesFormatter{},
 	}
 	campaignImages := <-q.campaignPostgreQuery.FindManyJoin(&queryPayload)
 	if campaignImages.Error == nil {
-		dataCampaign.Images = campaignImages.Data.([]models.CampaignImages)
+		dataCampaign.Images = campaignImages.Data.([]models.CampaignImagesFormatter)
 	}
+
+	var data []models.CampaignImagesFormatter
+	byteImages, _ := json.Marshal(queryRes.Data)
+	json.Unmarshal(byteImages, &data)
+
+	for _, v := range campaign.Images {
+		CampaignImagesFormatter := models.CampaignImagesFormatter{}
+		CampaignImagesFormatter.FileName = v.FileName
+		isPrimary := false
+
+		if v.IsPrimary == 1 {
+			isPrimary = true
+		}
+		CampaignImagesFormatter.IsPrimary = isPrimary
+		data = append(data, CampaignImagesFormatter)
+	}
+
+	// var user models.UserFormat
+	// user.Name = campaign.User.Name
+	// user.AvatarFileName = campaign.User.AvatarFileName
+
+	// jsonUserFormatter, _ := json.Marshal(queryRes.Data)
+	// json.Unmarshal(jsonUserFormatter, &user)
+
+	// dataCampaign.User = user
 
 	result.Data = dataCampaign
 	return result
