@@ -2,6 +2,7 @@ package queries
 
 import (
 	"context"
+	models "crowdfunding/modules/campaigns/models/domain"
 	"crowdfunding/pkg/utils"
 
 	"gorm.io/gorm"
@@ -41,8 +42,8 @@ func (c *CampaignsPostgreQuery) FindOne(payload *QueryPayload) <-chan utils.Resu
 
 	go func() {
 		defer close(output)
-		var data map[string]interface{}
-		result := c.db.Debug().Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Limit(1).Find(&data)
+		var data models.Campaign
+		result := c.db.Debug().Preload("User").Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Limit(1).Find(&data)
 		if result.Error != nil || result.RowsAffected == 0 {
 			output <- utils.Result{
 				Error: "Data Not Found",

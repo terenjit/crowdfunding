@@ -6,16 +6,16 @@ import (
 )
 
 type User struct {
-	ID             string    `json:"id" gorm:"primaryKey;autoIncrement:true"`
-	Name           string    `json:"name"`
-	Username       string    `json:"username"`
-	Occupation     string    `json:"occupation"`
-	Email          string    `json:"email"`
-	Password       string    `json:"password"`
-	AvatarFileName string    `json:"avatar"`
-	Role           string    `json:"role"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	ID         string    `json:"id" gorm:"primaryKey;autoIncrement:true"`
+	Name       string    `json:"name"`
+	Username   string    `json:"username"`
+	Occupation string    `json:"occupation"`
+	Email      string    `json:"email"`
+	Password   string    `json:"password"`
+	Avatar     string    `json:"avatar"`
+	Role       string    `json:"role"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 // userDataFormat
@@ -56,15 +56,15 @@ type UsersGetList struct {
 }
 
 type UpdatedUser struct {
-	ID             string    `json:"id" param:"id" validate:"required"`
-	Name           string    `json:"name"`
-	Username       string    `json:"username"`
-	Occupation     string    `json:"occupation"`
-	Email          string    `json:"email"`
-	Password       string    `json:"password"`
-	AvatarFileName string    `json:"avatar"`
-	Role           string    `json:"role"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
-	UpdatedBy      string    `json:"update_by"`
+	ID         string    `json:"id" param:"id" validate:"required"`
+	Name       string    `json:"name"`
+	Username   string    `json:"username"`
+	Occupation string    `json:"occupation"`
+	Email      string    `json:"email"`
+	Password   string    `json:"password"`
+	Avatar     string    `json:"avatar"`
+	Role       string    `json:"role"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	UpdatedBy  string    `json:"update_by"`
 }

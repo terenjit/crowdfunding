@@ -165,9 +165,9 @@ func (c userCommandUsecase) SaveAvatar(ctx context.Context, file multipart.File,
 		return result
 	}
 
-	user.AvatarFileName = header.Filename
+	user.Avatar = header.Filename
 	size := header.Size
-	ext := filepath.Ext(user.AvatarFileName)
+	ext := filepath.Ext(user.Avatar)
 	if ext != ".jpg" && ext != ".png" && ext != ".jpeg" {
 		errObj := httpError.NewBadRequest()
 		errObj.Message = "Format file tidak valid, format yang valid: jpg, png, jpeg"

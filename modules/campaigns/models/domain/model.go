@@ -1,6 +1,7 @@
 package domain
 
 import (
+	models "crowdfunding/modules/users/models/domain"
 	"crowdfunding/pkg/token"
 	"time"
 )
@@ -11,7 +12,7 @@ type Campaign struct {
 	Name             string           `json:"name"`
 	ShortDescription string           `json:"short_description"`
 	Description      string           `json:"description" `
-	User             UserFormat       `json:"user"`
+	User             models.User      `json:"user"`
 	Perks            string           `json:"perks"`
 	BackerCount      int              `json:"backer_count"`
 	GoalAmount       int              `json:"goal_amount"`

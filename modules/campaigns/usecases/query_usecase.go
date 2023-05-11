@@ -87,15 +87,6 @@ func (q campaignQueryUsecase) GetDetail(ctx context.Context, payload *models.Cam
 		data = append(data, CampaignImagesFormatter)
 	}
 
-	// var user models.UserFormat
-	// user.Name = campaign.User.Name
-	// user.AvatarFileName = campaign.User.AvatarFileName
-
-	// jsonUserFormatter, _ := json.Marshal(queryRes.Data)
-	// json.Unmarshal(jsonUserFormatter, &user)
-
-	// dataCampaign.User = user
-
 	result.Data = dataCampaign
 	return result
 }
