@@ -12,12 +12,12 @@ type Campaign struct {
 	Name             string           `json:"name"`
 	ShortDescription string           `json:"short_description"`
 	Description      string           `json:"description" `
-	User             models.User      `json:"user"`
+	User             models.User      `json:"user,omitempty"`
 	Perks            string           `json:"perks"`
 	BackerCount      int              `json:"backer_count"`
-	GoalAmount       int              `json:"goal_amount"`
+	GoalAmount       int64            `json:"goal_amount"`
 	CurrentAmount    int              `json:"current_amount"`
-	Slug             int              `json:"slug"`
+	Slug             string           `json:"slug"`
 	Images           []CampaignImages `json:"images" gorm:"-"`
 	CreatedAt        time.Time        `json:"created_at"`
 	UpdatedAt        time.Time        `json:"updated_at"`
@@ -31,10 +31,10 @@ type CampaignFormatter struct {
 	Description      string                    `json:"description" `
 	User             UserFormat                `json:"user"`
 	Perks            []string                  `json:"perks"`
-	BackerCount      int                       `json:"backer_count"`
-	GoalAmount       int                       `json:"goal_amount"`
-	CurrentAmount    int                       `json:"current_amount"`
-	Slug             int                       `json:"slug"`
+	BackerCount      int64                     `json:"backer_count"`
+	GoalAmount       int64                     `json:"goal_amount"`
+	CurrentAmount    int64                     `json:"current_amount"`
+	Slug             string                    `json:"slug"`
 	Images           []CampaignImagesFormatter `json:"images" gorm:"-"`
 	CreatedAt        time.Time                 `json:"created_at"`
 	UpdatedAt        time.Time                 `json:"updated_at"`
@@ -81,12 +81,23 @@ type UpdateCampaign struct {
 	ShortDescription string           `json:"short_description"`
 	Description      string           `json:"description" `
 	Perks            string           `json:"perks"`
-	BackerCount      int              `json:"backer_count"`
-	GoalAmount       int              `json:"goal_amount"`
-	CurrentAmount    int              `json:"current_amount"`
-	Slug             int              `json:"slug"`
+	BackerCount      int64            `json:"backer_count"`
+	GoalAmount       int64            `json:"goal_amount"`
+	CurrentAmount    int64            `json:"current_amount"`
+	Slug             string           `json:"slug"`
 	Images           []CampaignImages `json:"images" gorm:"-"`
 	CreatedAt        time.Time        `json:"created_at"`
 	UpdatedAt        time.Time        `json:"updated_at"`
 	UpdatedBy        string           `json:"update_by"`
+}
+
+type CreateRequest struct {
+	ID               string      `json:"id"`
+	Name             string      `json:"name"`
+	ShortDescription string      `json:"short_description"`
+	Description      string      `json:"description"`
+	GoalAmount       int64       `json:"goal_amount"`
+	Slug             string      `json:"slug"`
+	Perks            string      `json:"perks"`
+	Opts             token.Claim `json:"opts,omitempty"`
 }

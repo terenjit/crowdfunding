@@ -24,6 +24,23 @@ func NewPostgreCommand(db *gorm.DB) *PostgreCommand {
 	}
 }
 
+func (c *PostgreCommand) InsertOne(table string, document interface{}) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+
+		result := c.db.Table(table).Create(document)
+		if result.Error != nil {
+			output <- utils.Result{Error: result}
+		}
+
+		output <- utils.Result{Data: document}
+	}()
+
+	return output
+}
+
 func (c *PostgreCommand) Update(payload *CommandPayload) <-chan utils.Result {
 	output := make(chan utils.Result)
 

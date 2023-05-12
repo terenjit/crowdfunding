@@ -10,6 +10,7 @@ import (
 	database "crowdfunding/pkg/databases"
 	"crowdfunding/pkg/utils"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -37,10 +38,29 @@ func New() *HTTPHandler {
 }
 
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
+	echoGroup.POST("/v1/campaigns", h.create, middleware.VerifyBearer())
 	echoGroup.GET("/v1/campaigns", h.getList, middleware.VerifyBearer())
-	echoGroup.GET("/v1/campaigns/:id", h.getDetail)
+	echoGroup.GET("/v1/campaigns/:id", h.getDetail, middleware.VerifyBearer())
 	echoGroup.PUT("/v1/campaigns/:id", h.Update, middleware.VerifyBearer())
 
+}
+
+func (h *HTTPHandler) create(c echo.Context) error {
+	body, _ := ioutil.ReadAll(c.Request().Body)
+
+	header, _ := json.Marshal(c.Get("opts"))
+
+	var payload models.CreateRequest
+	json.Unmarshal(body, &payload)
+	json.Unmarshal(header, &payload.Opts)
+
+	result := h.commandUsecase.Create(c.Request().Context(), &payload)
+
+	if result.Error != nil {
+		return utils.ResponseError(result.Error, c)
+	}
+
+	return utils.Response(result.Data, "Create Campaign", http.StatusOK, c)
 }
 
 func (h *HTTPHandler) getList(c echo.Context) error {

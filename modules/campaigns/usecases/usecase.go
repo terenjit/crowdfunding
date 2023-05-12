@@ -13,5 +13,6 @@ type QueryUsecase interface {
 
 // CommandUsecase interface
 type CommandUsecase interface {
+	Create(ctx context.Context, payload *models.CreateRequest) utils.Result
 	Update(ctx context.Context, payload *models.UpdateCampaign) utils.Result
 }
