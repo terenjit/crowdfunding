@@ -42,7 +42,7 @@ func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.GET("/v1/campaigns", h.getList, middleware.VerifyBearer())
 	echoGroup.GET("/v1/campaigns/:id", h.getDetail, middleware.VerifyBearer())
 	echoGroup.PUT("/v1/campaigns/:id", h.Update, middleware.VerifyBearer())
-
+	echoGroup.POST("/v1/campaign-images", h.UploadImage, middleware.VerifyBearer())
 }
 
 func (h *HTTPHandler) create(c echo.Context) error {
@@ -130,4 +130,25 @@ func (h *HTTPHandler) Update(c echo.Context) error {
 		return utils.ResponseError(result.Error, c)
 	}
 	return utils.Response(result.Data, "User success updated", http.StatusOK, c)
+}
+
+func (h *HTTPHandler) UploadImage(c echo.Context) error {
+
+	var payload = new(models.UploadImageRequest)
+	if err := utils.BindValidate(c, payload); err != nil {
+		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
+	}
+
+	file, header, err := c.Request().FormFile("file")
+
+	if err != nil {
+		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
+	}
+
+	result := h.commandUsecase.UploadCampaignImage(c.Request().Context(), file, header, payload)
+	if result.Error != nil {
+		return utils.ResponseError(result.Error, c)
+	}
+
+	return utils.Response(result.Data, "Success Upload Campaign Image", http.StatusOK, c)
 }

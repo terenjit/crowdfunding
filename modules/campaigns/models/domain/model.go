@@ -49,6 +49,12 @@ type CampaignImages struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 }
 
+type UploadImageRequest struct {
+	CampaignID string      `json:"campaign_id" form:"campaign_id"`
+	IsPrimary  bool        `json:"is_primary" form:"is_primary"`
+	Opts       token.Claim `json:"opts,omitempty"`
+}
+
 type CampaignImagesFormatter struct {
 	FileName  string `json:"name"`
 	IsPrimary bool   `json:"is_primary"`
@@ -89,6 +95,7 @@ type UpdateCampaign struct {
 	CreatedAt        time.Time        `json:"created_at"`
 	UpdatedAt        time.Time        `json:"updated_at"`
 	UpdatedBy        string           `json:"update_by"`
+	Opts             token.Claim      `json:"opts"`
 }
 
 type CreateRequest struct {

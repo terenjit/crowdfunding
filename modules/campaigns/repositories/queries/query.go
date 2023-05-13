@@ -1,6 +1,7 @@
 package queries
 
 import (
+	"context"
 	"crowdfunding/pkg/utils"
 )
 
@@ -9,4 +10,5 @@ type CampaignsPostgre interface {
 	FindManyJoin(payload *QueryPayload) <-chan utils.Result
 	FindOneJoin(payload *QueryPayload) <-chan utils.Result
 	FindOne(payload *QueryPayload) <-chan utils.Result
+	FindOneByID(ctx context.Context, ID string) <-chan utils.Result
 }

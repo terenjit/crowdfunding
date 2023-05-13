@@ -12,7 +12,9 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
@@ -81,7 +83,7 @@ func (c commandUsecase) Update(ctx context.Context, payload *models.UpdateCampai
 
 	currentTime := time.Now()
 	payload.UpdatedAt = currentTime
-	payload.UpdatedBy = payload.UserID
+	payload.UpdatedBy = payload.Opts.UserID
 
 	queryPayload := commands.CommandPayload{
 		Table:     "campaigns c",
@@ -132,5 +134,57 @@ func (c commandUsecase) HttpRequest(method string, url string, auth string, requ
 
 	result.Data = http.Data
 	result.Error = http.Success
+	return result
+}
+func (c commandUsecase) UploadCampaignImage(ctx context.Context, file multipart.File, header *multipart.FileHeader, payload *models.UploadImageRequest) utils.Result {
+	var result utils.Result
+
+	res := <-c.postgreQuery.FindOneByID(ctx, payload.CampaignID)
+	campaignImages := res.Data.(models.CampaignImages)
+	if campaignImages.CampaignID == "" {
+		errObj := httpError.NewNotFound()
+		errObj.Message = "campaign images tidak ditemukan"
+		result.Error = errObj
+		return result
+	}
+
+	campaignImages.FileName = header.Filename
+	ext := filepath.Ext(campaignImages.FileName)
+	if ext != ".jpg" && ext != ".png" && ext != ".jpeg" {
+		errObj := httpError.NewBadRequest()
+		errObj.Message = "Format file tidak valid, format yang valid: jpg, png, jpeg"
+		result.Error = errObj
+		return result
+	}
+
+	isPrimary := 0
+	if payload.IsPrimary {
+		isPrimary = 1
+
+		imagesPrimary := <-c.postgreCommand.MarkAllImagesAsNonPrimary(payload.CampaignID)
+		if imagesPrimary.Error != nil {
+			errObj := httpError.NewConflict()
+			errObj.Message = "perubahan is_primary gagal"
+			result.Error = errObj
+			return result
+		}
+	}
+
+	campaignImage := models.CampaignImages{
+		ID:         uuid.NewString(),
+		CampaignID: payload.CampaignID,
+		IsPrimary:  isPrimary,
+		FileName:   campaignImages.FileName,
+	}
+
+	newCampaignImages := <-c.postgreCommand.UploadImages(campaignImage.CampaignID, &campaignImage)
+	if newCampaignImages.Error != nil {
+		errObj := httpError.NewConflict()
+		errObj.Message = "upload images campaign gagal"
+		result.Error = errObj
+		return result
+	}
+
+	result.Data = campaignImage
 	return result
 }

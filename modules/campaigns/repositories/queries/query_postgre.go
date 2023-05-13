@@ -111,3 +111,23 @@ func (q *CampaignsPostgreQuery) CountData(payload *QueryPayload) <-chan utils.Re
 
 	return output
 }
+
+func (c *CampaignsPostgreQuery) FindOneByID(ctx context.Context, ID string) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+
+		var images models.CampaignImages
+
+		result := c.db.Where("id = ?", ID).Find(&images)
+		if result.Error != nil {
+			output <- utils.Result{
+				Error: result.Error,
+			}
+		}
+		output <- utils.Result{Data: images}
+	}()
+
+	return output
+}
