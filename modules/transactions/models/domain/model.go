@@ -10,6 +10,8 @@ type Transaction struct {
 	CampaignID string    `json:"campaign_id"`
 	UserID     string    `json:"user_id"`
 	Name       string    `json:"name"`
+	FileName   string    `json:"file_name"`
+	IsPrimary  int       `json:"is_primary"`
 	Amount     int64     `json:"amount"`
 	Status     string    `json:"status"`
 	Code       string    `json:"code"`
@@ -25,6 +27,7 @@ type TransactionList struct {
 	Query      string      `query:"query"`
 	SortBy     string      `json:"sort_by"`
 	CampaignID string      `json:"campaign_id" param:"campaign_id"`
+	IsPrimary  int         `json:"is_primary"`
 	UserID     string      `json:"user_id"`
 	Opts       token.Claim `json:"opts"`
 }

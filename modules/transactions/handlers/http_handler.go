@@ -36,6 +36,7 @@ func New() *HTTPHandler {
 
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.GET("/v1/campaigns/:campaign_id/transactions", h.ListofTransactions)
+	echoGroup.GET("/v1/transactions/:user_id", h.Usertransactions)
 }
 
 func (h *HTTPHandler) ListofTransactions(c echo.Context) error {
@@ -68,5 +69,38 @@ func (h *HTTPHandler) ListofTransactions(c echo.Context) error {
 		return utils.ResponseError(result.Error, c)
 	}
 
-	return utils.PaginationResponse(result.Data, result.MetaData, "List All Campaigns", http.StatusOK, c)
+	return utils.PaginationResponse(result.Data, result.MetaData, "List All transactions by campaign id", http.StatusOK, c)
+}
+
+func (h *HTTPHandler) Usertransactions(c echo.Context) error {
+	userid := c.Param("user_id")
+
+	query := make(map[string]interface{})
+
+	for key, value := range c.QueryParams() {
+		if key != "page" && key != "quantity" {
+			query[key] = value[0]
+		} else {
+			query[key] = value[0]
+			v, err := strconv.Atoi(value[0])
+			if err == nil {
+				query[key] = v
+			}
+		}
+	}
+
+	payload, _ := json.Marshal(query)
+	header, _ := json.Marshal(c.Get("opts"))
+	var data models.TransactionList
+	json.Unmarshal(payload, &data)
+	json.Unmarshal(header, &data.Opts)
+	data.UserID = userid
+
+	result := h.queryUsecase.ListUserTransactions(c.Request().Context(), &data)
+
+	if result.Error != nil {
+		return utils.ResponseError(result.Error, c)
+	}
+
+	return utils.PaginationResponse(result.Data, result.MetaData, "List All user transactions", http.StatusOK, c)
 }
