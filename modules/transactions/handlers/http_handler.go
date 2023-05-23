@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"crowdfunding/middleware"
 	models "crowdfunding/modules/transactions/models/domain"
 	"crowdfunding/modules/transactions/repositories/commands"
 	"crowdfunding/modules/transactions/repositories/queries"
@@ -9,6 +10,7 @@ import (
 	database "crowdfunding/pkg/databases"
 	"crowdfunding/pkg/utils"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -37,6 +39,25 @@ func New() *HTTPHandler {
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.GET("/v1/campaigns/:campaign_id/transactions", h.ListofTransactions)
 	echoGroup.GET("/v1/transactions/:user_id", h.Usertransactions)
+	echoGroup.POST("/v1/transactions", h.create, middleware.VerifyBearer())
+}
+
+func (h *HTTPHandler) create(c echo.Context) error {
+	body, _ := ioutil.ReadAll(c.Request().Body)
+
+	header, _ := json.Marshal(c.Get("opts"))
+
+	var payload models.CreateRequest
+	json.Unmarshal(body, &payload)
+	json.Unmarshal(header, &payload.Opts)
+
+	result := h.commandUsecase.Create(c.Request().Context(), &payload)
+
+	if result.Error != nil {
+		return utils.ResponseError(result.Error, c)
+	}
+
+	return utils.Response(result.Data, "Create transactions", http.StatusOK, c)
 }
 
 func (h *HTTPHandler) ListofTransactions(c echo.Context) error {

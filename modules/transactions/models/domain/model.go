@@ -31,3 +31,20 @@ type TransactionList struct {
 	UserID     string      `json:"user_id"`
 	Opts       token.Claim `json:"opts"`
 }
+
+type CreateRequest struct {
+	CampaignID string      `json:"campaign_id"`
+	Amount     int64       `json:"amount"`
+	Opts       token.Claim `json:"opts,omitempty"`
+}
+
+type TransactionModel struct {
+	ID         string    `json:"id,omitempty"`
+	CampaignID string    `json:"campaign_id,omitempty"`
+	UserID     string    `json:"user_id,omitempty"`
+	Amount     int64     `json:"amount,omitempty"`
+	Status     string    `json:"status,omitempty"`
+	Code       string    `json:"code,omitempty"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
