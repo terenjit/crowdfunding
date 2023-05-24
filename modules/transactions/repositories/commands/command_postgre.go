@@ -30,12 +30,26 @@ func (c *PostgreCommand) InsertOne(table string, document interface{}) <-chan ut
 	go func() {
 		defer close(output)
 
-		result := c.db.Table(table).Create(document)
+		result := c.db.Debug().Table(table).Create(document)
 		if result.Error != nil {
 			output <- utils.Result{Error: result}
 		}
 
 		output <- utils.Result{Data: document}
+	}()
+
+	return output
+}
+
+func (c *PostgreCommand) Update(table string, document interface{}) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+		result := c.db.Debug().Table(table).Updates(document)
+		if result.Error != nil {
+			output <- utils.Result{Error: result}
+		}
 	}()
 
 	return output

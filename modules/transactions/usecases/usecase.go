@@ -14,4 +14,5 @@ type QueryUsecase interface {
 // CommandUsecase interface
 type CommandUsecase interface {
 	Create(ctx context.Context, payload *models.CreateRequest) utils.Result
+	// GetPaymentURL(ctx context.Context, payload *models.TransactionModel) (string, error)
 }

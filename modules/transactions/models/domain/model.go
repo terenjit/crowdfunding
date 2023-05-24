@@ -12,6 +12,7 @@ type Transaction struct {
 	Name       string    `json:"name"`
 	FileName   string    `json:"file_name"`
 	IsPrimary  int       `json:"is_primary"`
+	PaymentURL string    `json:"payment_url"`
 	Amount     int64     `json:"amount"`
 	Status     string    `json:"status"`
 	Code       string    `json:"code"`
@@ -33,18 +34,21 @@ type TransactionList struct {
 }
 
 type CreateRequest struct {
+	ID         string      `json:"id"`
 	CampaignID string      `json:"campaign_id"`
 	Amount     int64       `json:"amount"`
-	Opts       token.Claim `json:"opts,omitempty"`
+	Opts       token.Claim `json:"opts,omitempty" gorm:"-"`
 }
 
 type TransactionModel struct {
-	ID         string    `json:"id,omitempty"`
-	CampaignID string    `json:"campaign_id,omitempty"`
-	UserID     string    `json:"user_id,omitempty"`
-	Amount     int64     `json:"amount,omitempty"`
-	Status     string    `json:"status,omitempty"`
-	Code       string    `json:"code,omitempty"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	ID         string      `json:"id,omitempty"`
+	CampaignID string      `json:"campaign_id,omitempty"`
+	UserID     string      `json:"user_id,omitempty"`
+	Amount     int64       `json:"amount,omitempty"`
+	Status     string      `json:"status,omitempty"`
+	Code       string      `json:"code,omitempty"`
+	PaymentURL string      `json:"payment_url"`
+	CreatedAt  time.Time   `json:"created_at"`
+	UpdatedAt  time.Time   `json:"updated_at"`
+	Opts       token.Claim `json:"opts" gorm:"-"`
 }

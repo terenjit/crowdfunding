@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	midtrans "github.com/veritrans/go-midtrans"
 )
 
 type commandUsecase struct {
@@ -57,6 +58,24 @@ func (c commandUsecase) Create(ctx context.Context, payload *models.CreateReques
 	if insertCampaign.Error != nil {
 		errObj := httpError.NewConflict()
 		errObj.Message = "pembuatan campaign gagal"
+		result.Error = errObj
+		return result
+	}
+
+	paymentURL, err := c.GetPaymentURL(&data)
+	if err != nil {
+		errObj := httpError.NewConflict()
+		errObj.Message = "pembuatan payment url gagal di create campaign"
+		result.Error = errObj
+		return result
+	}
+
+	data.PaymentURL = paymentURL
+
+	insertCampaign = <-c.postgreCommand.Update("transactions", &data)
+	if insertCampaign.Error != nil {
+		errObj := httpError.NewConflict()
+		errObj.Message = "update paymentURL gagal"
 		result.Error = errObj
 		return result
 	}
@@ -103,4 +122,44 @@ func (c commandUsecase) HttpRequest(method string, url string, auth string, requ
 	result.Data = http.Data
 	result.Error = http.Success
 	return result
+}
+
+func (c commandUsecase) GetPaymentURL(payload *models.TransactionModel) (string, error) {
+	var result utils.Result
+
+	requestUser := c.HttpRequest(http.MethodGet, fmt.Sprintf("localhost:9000/crowdfunding/v1/users/%s", payload.Opts.UserID), payload.Opts.Authorization, nil)
+	if requestUser.Error == false {
+		errObj := httpError.NewConflict()
+		errObj.Message = "Data pengguna tidak ditemukan"
+		result.Error = errObj
+		return "", nil
+	}
+
+	midclient := midtrans.NewClient()
+	midclient.ServerKey = ""
+	midclient.ClientKey = ""
+	midclient.APIEnvType = midtrans.Sandbox
+
+	snapGateway := midtrans.SnapGateway{
+		Client: midclient,
+	}
+
+	snapReq := &midtrans.SnapReq{
+		CustomerDetail: &midtrans.CustDetail{
+			Email: payload.Opts.UserID,
+			FName: payload.Opts.Name,
+		},
+		TransactionDetails: midtrans.TransactionDetails{
+			OrderID:  payload.ID,
+			GrossAmt: payload.Amount,
+		},
+	}
+
+	snapTokenResp, err := snapGateway.GetToken(snapReq)
+	if err != nil {
+		errObj := httpError.NewConflict()
+		errObj.Message = "pembuatan payment URL gagal"
+	}
+
+	return snapTokenResp.RedirectURL, nil
 }

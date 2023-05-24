@@ -38,6 +38,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
+	github.com/veritrans/go-midtrans v0.0.0-20210616100512-16326c5eeb00
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.7.0
 	golang.org/x/net v0.8.0 // indirect
