@@ -52,3 +52,25 @@ type TransactionModel struct {
 	UpdatedAt  time.Time   `json:"updated_at"`
 	Opts       token.Claim `json:"opts" gorm:"-"`
 }
+
+type TransactionNotificationInput struct {
+	TransactionStatus string `json:"transaction_status"`
+	OrderID           string `json:"order_id"`
+	PaymentType       string `json:"payment_type"`
+	FraudStatus       string `json:"fraud_status"`
+}
+
+type CampaignModel struct {
+	ID               string    `json:"id"`
+	UserID           string    `json:"user_id"`
+	Name             string    `json:"name"`
+	ShortDescription string    `json:"short_description"`
+	Description      string    `json:"description" `
+	Perks            string    `json:"perks"`
+	BackerCount      int64     `json:"backer_count"`
+	GoalAmount       int64     `json:"goal_amount"`
+	CurrentAmount    int64     `json:"current_amount"`
+	Slug             string    `json:"slug"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}

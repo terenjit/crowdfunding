@@ -50,7 +50,7 @@ func (c commandUsecase) Create(ctx context.Context, payload *models.CreateReques
 		UserID:     payload.Opts.UserID,
 		Amount:     payload.Amount,
 		Status:     "pending",
-		Code:       fmt.Sprintf("ORDER-%s", time.Now().Format("2006-30-12")),
+		Code:       transactionId,
 		CreatedAt:  time.Now(),
 	}
 
@@ -162,4 +162,44 @@ func (c commandUsecase) GetPaymentURL(payload *models.TransactionModel) (string,
 	}
 
 	return snapTokenResp.RedirectURL, nil
+}
+
+func (c commandUsecase) ProcessPayment(ctx context.Context, payload *models.TransactionNotificationInput) error {
+	transaction_id := payload.OrderID
+
+	transaction, err := c.postgreCommand.FindByID(transaction_id)
+	if err != nil {
+		return err
+	}
+
+	if payload.PaymentType == "credit_card" && payload.TransactionStatus == "capture" && payload.FraudStatus == "accept" {
+		transaction.Status = "paid"
+	} else if payload.TransactionStatus == "settlement" {
+		transaction.Status = "paid"
+	} else if payload.TransactionStatus == "deny" || payload.TransactionStatus == "expire" || payload.TransactionStatus == "cancel" {
+		transaction.Status = "cancelled"
+	}
+
+	updatedTransaction, err := c.postgreCommand.UpdateTransaction(transaction)
+	if err != nil {
+		return err
+	}
+
+	campaign, err := c.postgreCommand.FindCampaignByID(updatedTransaction.CampaignID)
+	if err != nil {
+		return err
+	}
+
+	if updatedTransaction.Status == "paid" {
+		campaign.BackerCount = campaign.BackerCount + 1
+		campaign.CurrentAmount = campaign.CurrentAmount + updatedTransaction.Amount
+
+		updateCampaign := <-c.postgreCommand.Update("campaigns", campaign)
+		if updateCampaign.Error != nil {
+			errObj := httpError.NewConflict()
+			errObj.Message = "update campaign terakhir gagal"
+		}
+	}
+
+	return nil
 }

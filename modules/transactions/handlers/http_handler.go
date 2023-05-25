@@ -40,6 +40,7 @@ func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.GET("/v1/campaigns/:campaign_id/transactions", h.ListofTransactions)
 	echoGroup.GET("/v1/transactions/:user_id", h.Usertransactions)
 	echoGroup.POST("/v1/transactions", h.create, middleware.VerifyBearer())
+	echoGroup.POST("/v1/transactions/notification", h.GetNotifications)
 }
 
 func (h *HTTPHandler) create(c echo.Context) error {
@@ -124,4 +125,19 @@ func (h *HTTPHandler) Usertransactions(c echo.Context) error {
 	}
 
 	return utils.PaginationResponse(result.Data, result.MetaData, "List All user transactions", http.StatusOK, c)
+}
+
+func (h *HTTPHandler) GetNotifications(c echo.Context) error {
+	var data = new(models.TransactionNotificationInput)
+
+	if err := utils.BindValidate(c, data); err != nil {
+		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
+	}
+
+	result := h.commandUsecase.ProcessPayment(c.Request().Context(), data)
+	if result != nil {
+		return utils.ResponseError(result.Error, c)
+	}
+
+	return c.JSON(http.StatusOK, data)
 }
