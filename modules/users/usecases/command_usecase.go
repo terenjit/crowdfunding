@@ -98,6 +98,29 @@ func (c userCommandUsecase) Register(ctx context.Context, payload *models.Regist
 		return result
 	}
 
+	claim := token.Claim{
+		Username: user.Username,
+		UserID:   user.ID,
+	}
+
+	jwt := <-token.Generate(ctx, &claim, config.GlobalEnv.AccessTokenExpired)
+	if jwt.Error != nil {
+		errObj := httpError.NewBadRequest()
+		errObj.Message = fmt.Sprintf("%v", queryRes.Error)
+		result.Error = errObj
+		return result
+	}
+
+	dataRegister := models.UserFormatter{
+		ID:         user.ID,
+		Name:       user.Name,
+		Username:   user.Username,
+		Email:      user.Email,
+		Occupation: user.Occupation,
+		Token:      jwt.Data.(string),
+	}
+
+	result.Data = dataRegister
 	return result
 }
 

@@ -39,7 +39,7 @@ func New() *HTTPHandler {
 
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.POST("/v1/campaigns", h.create, middleware.VerifyBearer())
-	echoGroup.GET("/v1/campaigns", h.getList, middleware.VerifyBearer())
+	echoGroup.GET("/v1/campaigns", h.getList)
 	echoGroup.GET("/v1/campaigns/:id", h.getDetail, middleware.VerifyBearer())
 	echoGroup.PUT("/v1/campaigns/:id", h.Update, middleware.VerifyBearer())
 	echoGroup.POST("/v1/campaign-images", h.UploadImage, middleware.VerifyBearer())
