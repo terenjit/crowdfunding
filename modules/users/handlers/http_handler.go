@@ -9,11 +9,14 @@ import (
 	"crowdfunding/modules/users/repositories/queries"
 	"crowdfunding/modules/users/usecases"
 	database "crowdfunding/pkg/databases"
+	"crowdfunding/pkg/token"
 	"crowdfunding/pkg/utils"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -46,10 +49,10 @@ func New() *HTTPHandler {
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.POST("/v1/users/register", h.Register)
 	echoGroup.POST("/v1/users/login", h.Login)
-	echoGroup.POST("/v1/users/avatars/:id", h.UploadAvatar, middleware.VerifyBearer())
+	echoGroup.POST("/v1/users/avatars", h.UploadAvatar, middleware.VerifyBearer())
 	echoGroup.GET("/v1/users", h.getList, middleware.VerifyBearer())
-	echoGroup.GET("/v1/users/:id", h.getDetail)
-	echoGroup.PUT("/v1/users/:id", h.Update, middleware.VerifyBearer())
+	echoGroup.GET("/v1/users/fetch", h.getDetail, middleware.VerifyBearer())
+	echoGroup.PUT("/v1/users/update", h.Update, middleware.VerifyBearer())
 }
 
 // Register Function
@@ -94,10 +97,25 @@ func (h *HTTPHandler) Login(c echo.Context) error {
 }
 
 func (h *HTTPHandler) UploadAvatar(c echo.Context) error {
-	ID := c.Param("id")
 
 	file, header, err := c.Request().FormFile("avatar")
 
+	if err != nil {
+		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
+	}
+
+	currentUser := c.Get("opts").(token.Claim)
+	ID := currentUser.UserID
+
+	src, err := header.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+	destinationPath := "images/" + header.Filename
+	dst, _ := os.Create(destinationPath)
+
+	_, err = io.Copy(dst, src)
 	if err != nil {
 		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
 	}
@@ -140,9 +158,10 @@ func (h *HTTPHandler) getList(c echo.Context) error {
 }
 
 func (h *HTTPHandler) getDetail(c echo.Context) error {
-	id := c.Param("id")
-
-	result := h.queryUsecase.GetDetail(c.Request().Context(), id)
+	// id := c.Param("id")
+	currentUser := c.Get("opts").(token.Claim)
+	ID := currentUser.UserID
+	result := h.queryUsecase.GetDetail(c.Request().Context(), ID)
 	if result.Error != nil {
 		return utils.ResponseError(result.Error, c)
 	}
@@ -156,6 +175,10 @@ func (h *HTTPHandler) Update(c echo.Context) error {
 	if err := utils.BindValidate(c, data); err != nil {
 		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
 	}
+
+	// currentUser := c.Get("opts").(token.Claim)
+	header, _ := json.Marshal(c.Get("opts"))
+	json.Unmarshal(header, &data.Opts)
 
 	result := h.commandUsecase.Update(c.Request().Context(), data)
 	if result.Error != nil {

@@ -23,6 +23,22 @@ type Campaign struct {
 	UpdatedAt        time.Time        `json:"updated_at"`
 }
 
+type CampaignsFormat struct {
+	ID               string    `json:"id"`
+	UserID           string    `json:"user_id"`
+	Name             string    `json:"name"`
+	ShortDescription string    `json:"short_description"`
+	Description      string    `json:"description" `
+	Perks            string    `json:"perks"`
+	BackerCount      int64     `json:"backer_count"`
+	GoalAmount       int64     `json:"goal_amount"`
+	CurrentAmount    int       `json:"current_amount"`
+	Slug             string    `json:"slug"`
+	ImagesURL        string    `json:"images_url"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
 type CampaignFormatter struct {
 	ID               string                    `json:"id"`
 	UserID           string                    `json:"user_id"`
@@ -62,7 +78,7 @@ type CampaignImagesFormatter struct {
 
 type CampainGetList struct {
 	Status   string      `json:"status"`
-	Search   interface{} `json:"search"`
+	Search   string      `json:"search"`
 	Page     int         `json:"page"`
 	Quantity int         `json:"quantity"`
 	Query    string      `query:"query"`

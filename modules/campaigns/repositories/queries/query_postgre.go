@@ -100,7 +100,7 @@ func (q *CampaignsPostgreQuery) CountData(payload *QueryPayload) <-chan utils.Re
 		defer close(output)
 
 		var data int64
-		result := q.db.Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Limit(payload.Limit).Offset(payload.Offset).Count(&data)
+		result := q.db.Debug().Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Limit(payload.Limit).Offset(payload.Offset).Count(&data)
 		if result.Error != nil {
 			output <- utils.ResultCount{
 				Error: "Data Not Found",
@@ -120,7 +120,7 @@ func (c *CampaignsPostgreQuery) FindOneByID(ctx context.Context, ID string) <-ch
 
 		var images models.CampaignImages
 
-		result := c.db.Where("id = ?", ID).Find(&images)
+		result := c.db.Table("campaigns").Where("id = ?", ID).Find(&images)
 		if result.Error != nil {
 			output <- utils.Result{
 				Error: result.Error,

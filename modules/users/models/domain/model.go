@@ -56,15 +56,20 @@ type UsersGetList struct {
 }
 
 type UpdatedUser struct {
-	ID         string    `json:"id" param:"id" validate:"required"`
-	Name       string    `json:"name"`
-	Username   string    `json:"username"`
-	Occupation string    `json:"occupation"`
-	Email      string    `json:"email"`
-	Password   string    `json:"password"`
-	Avatar     string    `json:"avatar"`
-	Role       string    `json:"role"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	UpdatedBy  string    `json:"update_by"`
+	ID         string      `json:"id"`
+	Name       string      `json:"name"`
+	Username   string      `json:"username"`
+	Occupation string      `json:"occupation"`
+	Email      string      `json:"email"`
+	Password   string      `json:"password"`
+	Avatar     string      `json:"avatar"`
+	Role       string      `json:"role"`
+	CreatedAt  time.Time   `json:"created_at"`
+	UpdatedAt  time.Time   `json:"updated_at"`
+	UpdatedBy  string      `json:"update_by"`
+	Opts       token.Claim `json:"opts,omitempty" gorm:"-"`
+}
+
+type Opts struct {
+	Opts token.Claim `json:"opts,omitempty"`
 }

@@ -188,7 +188,7 @@ func (c userCommandUsecase) SaveAvatar(ctx context.Context, file multipart.File,
 		return result
 	}
 
-	user.Avatar = header.Filename
+	user.Avatar = "images/" + header.Filename
 	size := header.Size
 	ext := filepath.Ext(user.Avatar)
 	if ext != ".jpg" && ext != ".png" && ext != ".jpeg" {

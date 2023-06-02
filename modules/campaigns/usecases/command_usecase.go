@@ -141,14 +141,14 @@ func (c commandUsecase) UploadCampaignImage(ctx context.Context, file multipart.
 
 	res := <-c.postgreQuery.FindOneByID(ctx, payload.CampaignID)
 	campaignImages := res.Data.(models.CampaignImages)
-	if campaignImages.CampaignID == "" {
+	if campaignImages.ID == "" {
 		errObj := httpError.NewNotFound()
 		errObj.Message = "campaign images tidak ditemukan"
 		result.Error = errObj
 		return result
 	}
 
-	campaignImages.FileName = header.Filename
+	campaignImages.FileName = "images/" + header.Filename
 	ext := filepath.Ext(campaignImages.FileName)
 	if ext != ".jpg" && ext != ".png" && ext != ".jpeg" {
 		errObj := httpError.NewBadRequest()

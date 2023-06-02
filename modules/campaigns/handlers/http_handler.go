@@ -10,9 +10,11 @@ import (
 	database "crowdfunding/pkg/databases"
 	"crowdfunding/pkg/utils"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -140,7 +142,19 @@ func (h *HTTPHandler) UploadImage(c echo.Context) error {
 	}
 
 	file, header, err := c.Request().FormFile("file")
+	if err != nil {
+		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
+	}
 
+	src, err := header.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+	destinationPath := "images/" + header.Filename
+	dst, _ := os.Create(destinationPath)
+
+	_, err = io.Copy(dst, src)
 	if err != nil {
 		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
 	}

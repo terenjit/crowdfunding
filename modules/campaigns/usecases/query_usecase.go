@@ -7,6 +7,7 @@ import (
 	httpError "crowdfunding/pkg/http-error"
 	"crowdfunding/pkg/utils"
 	"encoding/json"
+	"fmt"
 	"math"
 	"strings"
 )
@@ -108,6 +109,10 @@ func (q campaignQueryUsecase) GetList(ctx context.Context, payload *models.Campa
 		query = query + " " + "AND user_id = @user_id"
 		parameter["user_id"] = payload.UserID
 	}
+	if payload.Search != "" {
+		query = query + " AND (c.name ILike @search)"
+		parameter["search"] = fmt.Sprintf("%v%v%v", "%", payload.Search, "%")
+	}
 
 	join := `left join campaign_images ci on ci.campaign_id = c.id`
 
@@ -117,12 +122,12 @@ func (q campaignQueryUsecase) GetList(ctx context.Context, payload *models.Campa
 		Parameter: parameter,
 		Select:    "c.id",
 		Join:      join,
-		Output:    []models.Campaign{},
+		Output:    []models.CampaignsFormat{},
 	}
 
 	count := <-q.campaignPostgreQuery.CountData(&queryPayload)
 	if count.Error != nil {
-		result.Data = []models.Campaign{}
+		result.Data = []models.CampaignsFormat{}
 		return result
 	}
 
@@ -131,34 +136,34 @@ func (q campaignQueryUsecase) GetList(ctx context.Context, payload *models.Campa
 	}
 
 	offset := payload.Quantity * (payload.Page - 1)
-	queryPayload.Select = "c.*"
+	queryPayload.Select = "c.*, ci.file_name as images_url"
 	queryPayload.Offset = offset
 	queryPayload.Limit = payload.Quantity
 	if count.Error == nil || count.Data > 0 {
 		queryRes = <-q.campaignPostgreQuery.FindManyJoin(&queryPayload)
 		if queryRes.Error != nil {
-			queryRes.Data = []models.Campaign{}
+			queryRes.Data = []models.CampaignsFormat{}
 			count.Data = 0
 		}
 	}
 
-	dataCampaign := queryRes.Data.([]models.Campaign)
-	for i := 0; i < len(dataCampaign); i++ {
-		parameter["id"] = dataCampaign[i].ID
+	dataCampaign := queryRes.Data.([]models.CampaignsFormat)
+	// for i := 0; i < len(dataCampaign); i++ {
+	// 	parameter["id"] = dataCampaign[i].ID
 
-		queryPayload := queries.QueryPayload{
-			Table:     "campaign_images ci",
-			Select:    "ci.id , ci.campaign_id, ci.file_name, ci.is_primary",
-			Query:     "ci.campaign_id = @id AND ci.is_primary = 1",
-			Parameter: parameter,
-			Output:    []models.CampaignImages{},
-		}
+	// 	queryPayload := queries.QueryPayload{
+	// 		Table:     "campaign_images ci",
+	// 		Select:    "ci.id , ci.campaign_id, ci.file_name, ci.is_primary",
+	// 		Query:     "ci.campaign_id = @id AND ci.is_primary = 1",
+	// 		Parameter: parameter,
+	// 		Output:    []models.CampaignImages{},
+	// 	}
 
-		campaignImages := <-q.campaignPostgreQuery.FindManyJoin(&queryPayload)
-		if campaignImages.Error == nil {
-			dataCampaign[i].Images = campaignImages.Data.([]models.CampaignImages)
-		}
-	}
+	// 	campaignImages := <-q.campaignPostgreQuery.FindManyJoin(&queryPayload)
+	// 	if campaignImages.Error == nil {
+	// 		dataCampaign[i].Images = campaignImages.Data.([]models.CampaignImages)
+	// 	}
+	// }
 
 	result.Data = dataCampaign
 	totalData := count.Data

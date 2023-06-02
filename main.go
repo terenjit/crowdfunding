@@ -21,6 +21,8 @@ func main() {
 	e.Validator = utils.NewValidationUtil()
 	e.Use(middleware.CORS())
 
+	e.Static("/crowdfunding/images", "./images")
+
 	e.GET("users", func(c echo.Context) error {
 		return c.String(http.StatusOK, "This service is running properly")
 	})
