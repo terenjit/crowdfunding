@@ -31,9 +31,10 @@ func (q campaignQueryUsecase) GetDetail(ctx context.Context, payload *models.Cam
 
 	queryPayload := queries.QueryPayload{
 		Table:     "campaigns c",
-		Select:    "c.* ",
+		Select:    "c.* ,ci.file_name as images_url",
 		Query:     "c.id = @id AND c.is_deleted = @is_deleted",
 		Parameter: parameter,
+		Join:      "left join campaign_images ci on ci.campaign_id = c.id",
 		Output:    models.Campaign{},
 	}
 
@@ -67,7 +68,7 @@ func (q campaignQueryUsecase) GetDetail(ctx context.Context, payload *models.Cam
 		Parameter: parameter,
 		Output:    []models.CampaignImagesFormatter{},
 	}
-	campaignImages := <-q.campaignPostgreQuery.FindManyJoin(&queryPayload)
+	campaignImages := <-q.campaignPostgreQuery.FindManyJoinDetail(&queryPayload)
 	if campaignImages.Error == nil {
 		dataCampaign.Images = campaignImages.Data.([]models.CampaignImagesFormatter)
 	}
@@ -101,7 +102,6 @@ func (q campaignQueryUsecase) GetList(ctx context.Context, payload *models.Campa
 
 	query = "c.is_deleted = @is_deleted"
 	parameter["is_deleted"] = false
-
 	if payload.Page == 0 {
 		payload.Page = 1
 	}
@@ -136,7 +136,7 @@ func (q campaignQueryUsecase) GetList(ctx context.Context, payload *models.Campa
 	}
 
 	offset := payload.Quantity * (payload.Page - 1)
-	queryPayload.Select = "c.*, ci.file_name as images_url"
+	queryPayload.Select = "c.*, ci.file_name as images_url "
 	queryPayload.Offset = offset
 	queryPayload.Limit = payload.Quantity
 	if count.Error == nil || count.Data > 0 {
@@ -161,7 +161,7 @@ func (q campaignQueryUsecase) GetList(ctx context.Context, payload *models.Campa
 
 	// 	campaignImages := <-q.campaignPostgreQuery.FindManyJoin(&queryPayload)
 	// 	if campaignImages.Error == nil {
-	// 		dataCampaign[i].Images = campaignImages.Data.([]models.CampaignImages)
+	// 		dataCampaign[i].ImagesURL = campaignImages.Data.(models.CampaignImages.imag)
 	// 	}
 	// }
 

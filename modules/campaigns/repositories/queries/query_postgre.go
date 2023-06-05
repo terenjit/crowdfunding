@@ -26,6 +26,7 @@ type QueryPayload struct {
 	Query     string
 	Parameter map[string]interface{}
 	Where     map[string]interface{}
+	WhereRaw  map[string]interface{}
 	Select    string
 	Join      string
 	Limit     int
@@ -43,7 +44,7 @@ func (c *CampaignsPostgreQuery) FindOne(payload *QueryPayload) <-chan utils.Resu
 	go func() {
 		defer close(output)
 		var data models.Campaign
-		result := c.db.Debug().Preload("User").Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Limit(1).Find(&data)
+		result := c.db.Debug().Preload("User").Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Joins(payload.Join).Limit(1).Find(&data)
 		if result.Error != nil || result.RowsAffected == 0 {
 			output <- utils.Result{
 				Error: "Data Not Found",
@@ -81,7 +82,25 @@ func (c *CampaignsPostgreQuery) FindManyJoin(payload *QueryPayload) <-chan utils
 	go func() {
 		defer close(output)
 
-		result := c.db.Debug().Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Offset(payload.Offset).Limit(payload.Limit).Joins(payload.Join).Order(payload.Order).Find(&payload.Output)
+		result := c.db.Debug().Table(payload.Table).Select(payload.Select).Where("is_primary = 1").Where(payload.Query, payload.Parameter).Offset(payload.Offset).Limit(payload.Limit).Joins(payload.Join).Find(&payload.Output)
+		if result.Error != nil {
+			output <- utils.Result{
+				Error: result.Error,
+			}
+		}
+		output <- utils.Result{Data: payload.Output, Count: result.RowsAffected}
+	}()
+
+	return output
+}
+
+func (c *CampaignsPostgreQuery) FindManyJoinDetail(payload *QueryPayload) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+
+		result := c.db.Debug().Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Offset(payload.Offset).Limit(payload.Limit).Joins(payload.Join).Find(&payload.Output)
 		if result.Error != nil {
 			output <- utils.Result{
 				Error: result.Error,
@@ -100,7 +119,7 @@ func (q *CampaignsPostgreQuery) CountData(payload *QueryPayload) <-chan utils.Re
 		defer close(output)
 
 		var data int64
-		result := q.db.Debug().Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Limit(payload.Limit).Offset(payload.Offset).Count(&data)
+		result := q.db.Debug().Table(payload.Table).Select(payload.Select).Where("is_primary = 1").Joins(payload.Join).Limit(payload.Limit).Offset(payload.Offset).Count(&data)
 		if result.Error != nil {
 			output <- utils.ResultCount{
 				Error: "Data Not Found",

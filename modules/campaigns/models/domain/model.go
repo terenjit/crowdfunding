@@ -45,6 +45,7 @@ type CampaignFormatter struct {
 	Name             string                    `json:"name"`
 	ShortDescription string                    `json:"short_description"`
 	Description      string                    `json:"description" `
+	ImagesURL        string                    `json:"images_url"`
 	User             UserFormat                `json:"user"`
 	Perks            []string                  `json:"perks"`
 	BackerCount      int64                     `json:"backer_count"`
@@ -77,6 +78,7 @@ type CampaignImagesFormatter struct {
 }
 
 type CampainGetList struct {
+	ID       string      `json:"id"`
 	Status   string      `json:"status"`
 	Search   string      `json:"search"`
 	Page     int         `json:"page"`
