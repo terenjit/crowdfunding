@@ -135,9 +135,9 @@ func (h *HTTPHandler) GetNotifications(c echo.Context) error {
 	}
 
 	result := h.commandUsecase.ProcessPayment(c.Request().Context(), data)
-	if result != nil {
+	if result.Error != nil {
 		return utils.ResponseError(result.Error, c)
 	}
 
-	return c.JSON(http.StatusOK, data)
+	return utils.Response(result.Data, "success updated transactions", http.StatusOK, c)
 }

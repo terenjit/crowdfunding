@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	models "crowdfunding/modules/transactions/models/domain"
 	"crowdfunding/pkg/utils"
 
@@ -42,12 +43,26 @@ func (c *PostgreCommand) InsertOne(table string, document interface{}) <-chan ut
 	return output
 }
 
-func (c *PostgreCommand) Update(table string, document interface{}) <-chan utils.Result {
+func (c *PostgreCommand) Update(ID string, document interface{}) <-chan utils.Result {
 	output := make(chan utils.Result)
 
 	go func() {
 		defer close(output)
-		result := c.db.Debug().Table(table).Updates(document)
+		result := c.db.Debug().Table("transactions").Where("id=?", ID).Updates(document)
+		if result.Error != nil {
+			output <- utils.Result{Error: result}
+		}
+	}()
+
+	return output
+}
+
+func (c *PostgreCommand) UpdateCampaign(ID string, document interface{}) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+		result := c.db.Debug().Table("campaigns").Where("id=?", ID).Updates(document)
 		if result.Error != nil {
 			output <- utils.Result{Error: result}
 		}
@@ -90,4 +105,44 @@ func (c *PostgreCommand) UpdateTransaction(data models.TransactionModel) (models
 	}
 
 	return transaction, result
+}
+
+func (c *PostgreCommand) FindOneByID(ctx context.Context, ID string) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+
+		var transaction models.TransactionModel
+
+		result := c.db.Table("transactions").Where("id = ?", ID).Find(&transaction).Debug()
+		if result.Error != nil {
+			output <- utils.Result{
+				Error: result.Error,
+			}
+		}
+		output <- utils.Result{Data: transaction}
+	}()
+
+	return output
+}
+
+func (c *PostgreCommand) FindOneCampaignByID(ctx context.Context, ID string) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+
+		var campaign models.CampaignModel
+
+		result := c.db.Table("campaigns").Where("id = ?", ID).Find(&campaign)
+		if result.Error != nil {
+			output <- utils.Result{
+				Error: result.Error,
+			}
+		}
+		output <- utils.Result{Data: campaign}
+	}()
+
+	return output
 }

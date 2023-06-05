@@ -146,7 +146,7 @@ func (c commandUsecase) GetPaymentURL(payload *models.TransactionModel) (string,
 
 	snapReq := &midtrans.SnapReq{
 		CustomerDetail: &midtrans.CustDetail{
-			Email: payload.Opts.UserID,
+			Email: payload.Opts.Email,
 			FName: payload.Opts.Name,
 		},
 		TransactionDetails: midtrans.TransactionDetails{
@@ -164,42 +164,99 @@ func (c commandUsecase) GetPaymentURL(payload *models.TransactionModel) (string,
 	return snapTokenResp.RedirectURL, nil
 }
 
-func (c commandUsecase) ProcessPayment(ctx context.Context, payload *models.TransactionNotificationInput) error {
+// func (c commandUsecase) ProcessPayment(ctx context.Context, payload *models.TransactionNotificationInput) error {
+// 	transaction_id := payload.OrderID
+
+// 	transaction, err := c.postgreCommand.FindByID(transaction_id)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	if payload.PaymentType == "credit_card" && payload.TransactionStatus == "capture" && payload.FraudStatus == "accept" {
+// 		transaction.Status = "paid"
+// 	} else if payload.TransactionStatus == "settlement" {
+// 		transaction.Status = "paid"
+// 	} else if payload.TransactionStatus == "deny" || payload.TransactionStatus == "expire" || payload.TransactionStatus == "cancel" {
+// 		transaction.Status = "cancelled"
+// 	}
+
+// 	updatedTransaction, err := c.postgreCommand.UpdateTransaction(transaction)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	campaign, err := c.postgreCommand.FindCampaignByID(updatedTransaction.CampaignID)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	if updatedTransaction.Status == "paid" {
+// 		campaign.BackerCount = campaign.BackerCount + 1
+// 		campaign.CurrentAmount = campaign.CurrentAmount + updatedTransaction.Amount
+
+// 		_, err := c.postgreCommand.UpdateCampaign(campaign)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+
+// 	return nil
+// }
+
+func (c commandUsecase) ProcessPayment(ctx context.Context, payload *models.TransactionNotificationInput) utils.Result {
+	var result utils.Result
+
 	transaction_id := payload.OrderID
 
-	transaction, err := c.postgreCommand.FindByID(transaction_id)
-	if err != nil {
-		return err
+	transactions := <-c.postgreCommand.FindOneByID(ctx, transaction_id)
+	if transactions.Error != nil {
+		errObj := httpError.NewConflict()
+		errObj.Message = "Data transactions tidak ditemukan"
+		result.Error = errObj
+		return result
 	}
+
+	dataTransactions := transactions.Data.(models.TransactionModel)
 
 	if payload.PaymentType == "credit_card" && payload.TransactionStatus == "capture" && payload.FraudStatus == "accept" {
-		transaction.Status = "paid"
+		dataTransactions.Status = "paid"
 	} else if payload.TransactionStatus == "settlement" {
-		transaction.Status = "paid"
+		dataTransactions.Status = "paid"
 	} else if payload.TransactionStatus == "deny" || payload.TransactionStatus == "expire" || payload.TransactionStatus == "cancel" {
-		transaction.Status = "cancelled"
+		dataTransactions.Status = "cancelled"
 	}
 
-	updatedTransaction, err := c.postgreCommand.UpdateTransaction(transaction)
-	if err != nil {
-		return err
+	updatedTransactions := <-c.postgreCommand.Update(transaction_id, &dataTransactions)
+	if updatedTransactions.Error != nil {
+		errObj := httpError.NewConflict()
+		errObj.Message = "Gagal Update data transactions"
+		result.Error = errObj
+		return result
 	}
 
-	campaign, err := c.postgreCommand.FindCampaignByID(updatedTransaction.CampaignID)
-	if err != nil {
-		return err
+	campaign := <-c.postgreCommand.FindOneCampaignByID(ctx, dataTransactions.CampaignID)
+	if campaign.Error != nil {
+		errObj := httpError.NewConflict()
+		errObj.Message = "data campaign tidak ditemukan"
+		result.Error = errObj
+		return result
 	}
 
-	if updatedTransaction.Status == "paid" {
-		campaign.BackerCount = campaign.BackerCount + 1
-		campaign.CurrentAmount = campaign.CurrentAmount + updatedTransaction.Amount
+	campaignData := campaign.Data.(models.CampaignModel)
 
-		updateCampaign := <-c.postgreCommand.Update("campaigns", campaign)
-		if updateCampaign.Error != nil {
+	if dataTransactions.Status == "paid" {
+		campaignData.BackerCount = campaignData.BackerCount + 1
+		campaignData.CurrentAmount = campaignData.CurrentAmount + dataTransactions.Amount
+
+		updatedCampaign := <-c.postgreCommand.UpdateCampaign(dataTransactions.CampaignID, &campaignData)
+		if updatedCampaign.Error != nil {
 			errObj := httpError.NewConflict()
-			errObj.Message = "update campaign terakhir gagal"
+			errObj.Message = "Gagal Update data campaign"
+			result.Error = errObj
+			return result
 		}
 	}
 
-	return nil
+	result.Data = dataTransactions
+	return result
 }
