@@ -99,7 +99,7 @@ type UserFormat struct {
 }
 
 type UpdateCampaign struct {
-	ID               string           `json:"id"`
+	ID               string           `json:"id" param:"id"`
 	UserID           string           `json:"user_id"`
 	Name             string           `json:"name"`
 	ShortDescription string           `json:"short_description"`
@@ -113,7 +113,7 @@ type UpdateCampaign struct {
 	CreatedAt        time.Time        `json:"created_at"`
 	UpdatedAt        time.Time        `json:"updated_at"`
 	UpdatedBy        string           `json:"update_by"`
-	Opts             token.Claim      `json:"opts"`
+	Opts             token.Claim      `json:"opts" gorm:"-"`
 }
 
 type CreateRequest struct {

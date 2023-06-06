@@ -38,7 +38,7 @@ func New() *HTTPHandler {
 
 func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.GET("/v1/campaigns/:campaign_id/transactions", h.ListofTransactions)
-	echoGroup.GET("/v1/transactions/:user_id", h.Usertransactions)
+	echoGroup.GET("/v1/transactions", h.Usertransactions)
 	echoGroup.POST("/v1/transactions", h.create, middleware.VerifyBearer())
 	echoGroup.POST("/v1/transactions/notification", h.GetNotifications)
 }
@@ -95,7 +95,6 @@ func (h *HTTPHandler) ListofTransactions(c echo.Context) error {
 }
 
 func (h *HTTPHandler) Usertransactions(c echo.Context) error {
-	userid := c.Param("user_id")
 
 	query := make(map[string]interface{})
 
@@ -116,7 +115,6 @@ func (h *HTTPHandler) Usertransactions(c echo.Context) error {
 	var data models.TransactionList
 	json.Unmarshal(payload, &data)
 	json.Unmarshal(header, &data.Opts)
-	data.UserID = userid
 
 	result := h.queryUsecase.ListUserTransactions(c.Request().Context(), &data)
 
@@ -124,7 +122,7 @@ func (h *HTTPHandler) Usertransactions(c echo.Context) error {
 		return utils.ResponseError(result.Error, c)
 	}
 
-	return utils.PaginationResponse(result.Data, result.MetaData, "List All user transactions", http.StatusOK, c)
+	return utils.PaginationResponse(result.Data, result.MetaData, "List All User Transactions", http.StatusOK, c)
 }
 
 func (h *HTTPHandler) GetNotifications(c echo.Context) error {

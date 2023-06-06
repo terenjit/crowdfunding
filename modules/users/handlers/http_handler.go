@@ -52,7 +52,7 @@ func (h *HTTPHandler) Mount(echoGroup *echo.Group) {
 	echoGroup.POST("/v1/users/avatars", h.UploadAvatar, middleware.VerifyBearer())
 	echoGroup.GET("/v1/users", h.getList, middleware.VerifyBearer())
 	echoGroup.GET("/v1/users/fetch", h.getDetail, middleware.VerifyBearer())
-	echoGroup.PUT("/v1/users/update", h.Update, middleware.VerifyBearer())
+	echoGroup.PUT("/v1/users/update/:id", h.Update, middleware.VerifyBearer())
 }
 
 // Register Function
@@ -176,7 +176,6 @@ func (h *HTTPHandler) Update(c echo.Context) error {
 		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
 	}
 
-	// currentUser := c.Get("opts").(token.Claim)
 	header, _ := json.Marshal(c.Get("opts"))
 	json.Unmarshal(header, &data.Opts)
 

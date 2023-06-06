@@ -82,3 +82,29 @@ func (c *UserpostgreCommand) UpdatedUser(payload *CommandPayload) <-chan utils.R
 
 	return output
 }
+
+func (c *UserpostgreCommand) UpdateProfile(ctx context.Context, data *models.UpdatedUser) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+
+		res := c.db.Model("users").Where("id = ?", data.ID).Updates(map[string]interface{}{
+			"name":       data.Name,
+			"email":      data.Email,
+			"password":   data.Password,
+			"avatar":     data.Avatar,
+			"occupation": data.Occupation,
+			"updated_at": data.UpdatedAt,
+			"updated_by": data.UpdatedBy,
+		})
+
+		if res.Error != nil {
+			output <- utils.Result{Error: res.Error}
+		}
+
+		output <- utils.Result{Data: res.RowsAffected}
+
+	}()
+	return output
+}

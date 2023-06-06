@@ -75,26 +75,54 @@ func (c commandUsecase) Create(ctx context.Context, payload *models.CreateReques
 func (c commandUsecase) Update(ctx context.Context, payload *models.UpdateCampaign) utils.Result {
 	var result utils.Result
 
-	var query string
 	parameter := make(map[string]interface{})
-
-	query = "c.id = @id"
+	parameter["is_deleted"] = false
 	parameter["id"] = payload.ID
 
-	currentTime := time.Now()
-	payload.UpdatedAt = currentTime
-	payload.UpdatedBy = payload.Opts.UserID
-
-	queryPayload := commands.CommandPayload{
+	queryPayload := queries.QueryPayload{
 		Table:     "campaigns c",
-		Query:     query,
+		Select:    "c.* ,ci.file_name as images_url",
+		Query:     "c.id = @id AND c.is_deleted = @is_deleted",
 		Parameter: parameter,
-		Document:  payload,
+		Join:      "left join campaign_images ci on ci.campaign_id = c.id",
+		Output:    models.Campaign{},
 	}
 
-	c.postgreCommand.Update(&queryPayload)
+	queryRes := <-c.postgreQuery.FindOne(&queryPayload)
+	if queryRes.Error != nil {
+		errObj := httpError.NewNotFound()
+		errObj.Message = "Campaign tidak ditemukan"
+		result.Error = errObj
+		return result
+	}
 
-	result.Data = payload
+	var document = make(map[string]interface{})
+	result.Data = &document
+
+	currentTime := time.Now()
+	document["updated_at"] = currentTime
+	document["updated_by"] = payload.Opts.UserID
+	document["name"] = payload.Name
+	document["short_description"] = payload.ShortDescription
+	document["description"] = payload.Description
+	document["goal_amount"] = payload.GoalAmount
+	document["perks"] = payload.Perks
+
+	commandPayload := commands.CommandPayload{
+		Table:     "campaigns c",
+		Query:     "c.id = @id AND c.is_deleted = @is_deleted",
+		Parameter: parameter,
+		Document:  document,
+	}
+
+	var update = <-c.postgreCommand.Update(&commandPayload)
+	if update.Error != nil {
+		errObj := httpError.NewNotFound()
+		errObj.Message = "Gagal memperbarui campaign"
+		result.Error = errObj
+		return result
+	}
+
 	return result
 }
 func (c commandUsecase) HttpRequest(method string, url string, auth string, requestBody io.Reader) utils.Result {

@@ -56,7 +56,7 @@ type UsersGetList struct {
 }
 
 type UpdatedUser struct {
-	ID         string      `json:"id"`
+	ID         string      `json:"id" param:"id"`
 	Name       string      `json:"name"`
 	Username   string      `json:"username"`
 	Occupation string      `json:"occupation"`

@@ -60,14 +60,14 @@ func (c *TransactionsPostgreQuery) FindManyJoin(payload *QueryPayload) <-chan ut
 
 	go func() {
 		defer close(output)
-
-		result := c.db.Debug().Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Offset(payload.Offset).Limit(payload.Limit).Joins(payload.Join).Order(payload.Order).Find(&payload.Output)
+		var data = make([]map[string]interface{}, 0)
+		result := c.db.Debug().Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Offset(payload.Offset).Limit(payload.Limit).Joins(payload.Join).Order(payload.Order).Find(&data)
 		if result.Error != nil {
 			output <- utils.Result{
 				Error: result.Error,
 			}
 		}
-		output <- utils.Result{Data: payload.Output, Count: result.RowsAffected}
+		output <- utils.Result{Data: data, Count: result.RowsAffected}
 	}()
 
 	return output

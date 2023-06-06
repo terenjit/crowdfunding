@@ -78,9 +78,25 @@ func (q transactionsQueryUsecase) ListUserTransactions(ctx context.Context, payl
 	var result utils.Result
 	var queryRes utils.Result
 
+	// var query string
+	// parameter := make(map[string]interface{})
+
+	// query = "t.is_deleted = @is_deleted"
+	// parameter["is_deleted"] = false
+	// if payload.Page == 0 {
+	// 	payload.Page = 1
+	// }
+	// if payload.UserID != "" {
+	// 	query = query + " " + "AND user_id = @user_id"
+	// 	parameter["user_id"] = payload.UserID
+	// }
+
 	parameter := make(map[string]interface{})
 	parameter["is_deleted"] = false
 	parameter["user_id"] = payload.UserID
+	if payload.Page == 0 {
+		payload.Page = 1
+	}
 
 	join := `left join users u on u.id = t.user_id
 			left join campaigns c on c.id = t.campaign_id
@@ -92,12 +108,12 @@ func (q transactionsQueryUsecase) ListUserTransactions(ctx context.Context, payl
 		Query:     "t.user_id = @user_id AND t.is_deleted = @is_deleted AND ci.is_primary = 1",
 		Parameter: parameter,
 		Join:      join,
-		Output:    []models.Transaction{},
+		Output:    []models.TransactionModelList{},
 	}
 
 	count := <-q.transactionsPostgreQuery.CountData(&queryPayload)
 	if count.Error != nil {
-		result.Data = []models.Transaction{}
+		result.Data = []models.TransactionModelList{}
 		return result
 	}
 
@@ -106,20 +122,26 @@ func (q transactionsQueryUsecase) ListUserTransactions(ctx context.Context, payl
 	}
 
 	offset := payload.Quantity * (payload.Page - 1)
-	queryPayload.Select = "t.*, u.name as name, ci.file_name as file_name, ci.is_primary"
+	queryPayload.Select = "t.*, u.name as name, ci.file_name as file_name, ci.is_primary ,c.name as campaign_name"
 	queryPayload.Offset = offset
 	queryPayload.Limit = payload.Quantity
 	if count.Error == nil || count.Data > 0 {
 		queryRes = <-q.transactionsPostgreQuery.FindManyJoin(&queryPayload)
 		if queryRes.Error != nil {
-			queryRes.Data = []models.Transaction{}
+			queryRes.Data = []models.TransactionModelList{}
 			count.Data = 0
 		}
 	}
 
-	var data []models.Transaction
+	// dataTransactions := queryRes.Data.([]models.TransactionModelList)
+
+	var data []models.TransactionModelList
 	byteStatus, _ := json.Marshal(queryRes.Data)
 	json.Unmarshal(byteStatus, &data)
+
+	// var data []models.Transaction
+	// byteStatus, _ := json.Marshal(queryRes.Data)
+	// json.Unmarshal(byteStatus, &data)
 
 	result.Data = data
 	totalData := count.Data

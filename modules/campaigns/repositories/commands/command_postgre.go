@@ -13,9 +13,12 @@ type PostgreCommand struct {
 
 type CommandPayload struct {
 	Table     string
+	Select    string
+	Join      string
 	Query     interface{}
 	Parameter map[string]interface{}
 	Document  interface{}
+	Output    interface{}
 	Raw       string
 }
 
@@ -48,7 +51,7 @@ func (c *PostgreCommand) Update(payload *CommandPayload) <-chan utils.Result {
 	go func() {
 		defer close(output)
 
-		result := c.db.Table(payload.Table).Where(payload.Query, payload.Parameter).Updates(payload.Document)
+		result := c.db.Debug().Table(payload.Table).Where(payload.Query, payload.Parameter).Updates(payload.Document)
 		if result.Error != nil {
 			output <- utils.Result{Error: result}
 		}
@@ -87,5 +90,23 @@ func (c *PostgreCommand) MarkAllImagesAsNonPrimary(id string) <-chan utils.Resul
 
 		output <- utils.Result{Data: res.RowsAffected}
 	}()
+	return output
+}
+
+func (c *PostgreCommand) FindOne(payload *CommandPayload) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+		var data models.Campaign
+		result := c.db.Debug().Preload("User").Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Joins(payload.Join).Limit(1).Find(&data)
+		if result.Error != nil || result.RowsAffected == 0 {
+			output <- utils.Result{
+				Error: "Data Not Found",
+			}
+		}
+		output <- utils.Result{Data: data}
+	}()
+
 	return output
 }

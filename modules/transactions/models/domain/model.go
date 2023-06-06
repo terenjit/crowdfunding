@@ -74,3 +74,19 @@ type CampaignModel struct {
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
 }
+
+type TransactionModelList struct {
+	ID           string    `json:"id"`
+	CampaignID   string    `json:"campaign_id"`
+	UserID       string    `json:"user_id"`
+	Name         string    `json:"name"`
+	CampaignName string    `json:"campaign_name"`
+	FileName     string    `json:"file_name"`
+	IsPrimary    int       `json:"is_primary"`
+	PaymentURL   string    `json:"payment_url"`
+	Amount       int64     `json:"amount"`
+	Status       string    `json:"status"`
+	Code         string    `json:"code"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}

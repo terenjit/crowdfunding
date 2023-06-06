@@ -126,6 +126,9 @@ func (h *HTTPHandler) Update(c echo.Context) error {
 		return utils.Response(nil, err.Error(), http.StatusBadRequest, c)
 	}
 
+	header, _ := json.Marshal(c.Get("opts"))
+	json.Unmarshal(header, &data.Opts)
+
 	result := h.commandUsecase.Update(c.Request().Context(), data)
 	if result.Error != nil {
 		log.Println(result.Error)

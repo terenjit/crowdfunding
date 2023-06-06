@@ -10,4 +10,5 @@ type CommandPostgre interface {
 	Update(payload *CommandPayload) <-chan utils.Result
 	UploadImages(param string, data *models.CampaignImages) <-chan utils.Result
 	MarkAllImagesAsNonPrimary(id string) <-chan utils.Result
+	FindOne(payload *CommandPayload) <-chan utils.Result
 }

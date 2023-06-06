@@ -15,4 +15,5 @@ type UserPostgre interface {
 	// ViewProfile(ctx context.Context, userId string) <-chan utils.Result
 	FindOne(ctx context.Context, query string, parameter map[string]interface{}) <-chan utils.Result
 	FindMany(payload *QueryPayload) <-chan utils.Result
+	FindOneUser(payload *QueryPayload) <-chan utils.Result
 }

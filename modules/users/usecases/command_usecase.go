@@ -10,6 +10,7 @@ import (
 	httpError "crowdfunding/pkg/http-error"
 	"crowdfunding/pkg/token"
 	"crowdfunding/pkg/utils"
+	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"path/filepath"
@@ -219,26 +220,58 @@ func (c userCommandUsecase) SaveAvatar(ctx context.Context, file multipart.File,
 
 func (c userCommandUsecase) Update(ctx context.Context, payload *models.UpdatedUser) utils.Result {
 	var result utils.Result
-
 	var query string
 	parameter := make(map[string]interface{})
-
+	query = "u.is_deleted = @is_deleted"
+	parameter["is_deleted"] = false
 	query = "u.id = @id"
 	parameter["id"] = payload.ID
 
-	currentTime := time.Now()
-	payload.UpdatedAt = currentTime
-	payload.UpdatedBy = payload.ID
-
-	queryPayload := commands.CommandPayload{
+	queryPayload := queries.QueryPayload{
 		Table:     "users u",
+		Select:    "u.*",
 		Query:     query,
 		Parameter: parameter,
-		Document:  payload,
+		Output:    models.UpdatedUser{},
 	}
 
-	c.userPostgreCommand.UpdatedUser(&queryPayload)
+	queryRes := <-c.userPostgreQuery.FindOneUser(&queryPayload)
+	if queryRes.Error != nil {
+		errObj := httpError.NewNotFound()
+		errObj.Message = "users tidak ditemukan"
+		result.Error = errObj
+		return result
+	}
 
-	result.Data = payload
+	var data = models.UpdatedUser{}
+	byteStatus, _ := json.Marshal(queryRes.Data)
+	json.Unmarshal(byteStatus, &data)
+
+	var document = make(map[string]interface{})
+	result.Data = &document
+
+	currentTime := time.Now()
+	document["updated_at"] = currentTime
+	document["updated_by"] = payload.Opts.UserID
+	document["name"] = payload.Name
+	document["occupation"] = payload.Occupation
+	document["email"] = data.Email
+	document["password"] = data.Password
+	document["avatar"] = data.Avatar
+
+	commandPayload := commands.CommandPayload{
+		Table:     "users u",
+		Query:     "u.id = @id AND u.is_deleted = @is_deleted",
+		Parameter: parameter,
+		Document:  document,
+	}
+
+	var update = <-c.userPostgreCommand.UpdatedUser(&commandPayload)
+	if update.Error != nil {
+		errObj := httpError.NewNotFound()
+		errObj.Message = "Gagal memperbarui campaign"
+		result.Error = errObj
+		return result
+	}
 	return result
 }

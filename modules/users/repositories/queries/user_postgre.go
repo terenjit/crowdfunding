@@ -154,3 +154,21 @@ func (c *UserpostgreQuery) FindMany(payload *QueryPayload) <-chan utils.Result {
 
 	return output
 }
+
+func (c *UserpostgreQuery) FindOneUser(payload *QueryPayload) <-chan utils.Result {
+	output := make(chan utils.Result)
+
+	go func() {
+		defer close(output)
+		var data models.UpdatedUser
+		result := c.db.Debug().Table(payload.Table).Select(payload.Select).Where(payload.Query, payload.Parameter).Joins(payload.Join).Limit(1).Find(&data)
+		if result.Error != nil || result.RowsAffected == 0 {
+			output <- utils.Result{
+				Error: "Data Not Found",
+			}
+		}
+		output <- utils.Result{Data: data}
+	}()
+
+	return output
+}
