@@ -32,7 +32,7 @@ func (q campaignQueryUsecase) GetDetail(ctx context.Context, payload *models.Cam
 	queryPayload := queries.QueryPayload{
 		Table:     "campaigns c",
 		Select:    "c.* ,ci.file_name as images_url",
-		Query:     "c.id = @id AND c.is_deleted = @is_deleted",
+		Query:     "c.id = @id AND c.is_deleted = @is_deleted AND ci.is_primary = 1",
 		Parameter: parameter,
 		Join:      "left join campaign_images ci on ci.campaign_id = c.id",
 		Output:    models.Campaign{},

@@ -136,8 +136,8 @@ func (c commandUsecase) GetPaymentURL(payload *models.TransactionModel) (string,
 	}
 
 	midclient := midtrans.NewClient()
-	midclient.ServerKey = ""
-	midclient.ClientKey = ""
+	midclient.ServerKey = "SB-Mid-server-EVpL-DlfaKI3DQU8quiWtVlC"
+	midclient.ClientKey = "SB-Mid-client-iDJQHNPTb5mBWatD"
 	midclient.APIEnvType = midtrans.Sandbox
 
 	snapGateway := midtrans.SnapGateway{
