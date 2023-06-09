@@ -13,7 +13,6 @@ type Campaign struct {
 	ShortDescription string           `json:"short_description"`
 	Description      string           `json:"description" `
 	User             models.User      `json:"user,omitempty"`
-	ImagesURL        string           `json:"images_url"`
 	Perks            string           `json:"perks"`
 	BackerCount      int64            `json:"backer_count"`
 	GoalAmount       int64            `json:"goal_amount"`
